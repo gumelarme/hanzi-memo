@@ -1,7 +1,7 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy import Column, String, ForeignKey, Table, select, exists, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_mixin, declared_attr
 from sqlalchemy.dialects.postgresql import UUID
 
 
@@ -10,6 +10,8 @@ class User(UUIDBase):
     email: Mapped[str] = mapped_column(String(length=32))
     dictionaries: Mapped[list["Dictionary"]] = relationship(back_populates="user", lazy="selectin")
     collections: Mapped[list["Collection"]] = relationship(back_populates="user", lazy="selectin")
+    lexeme_blacklist: Mapped[list["LexemeBlacklist"]] = relationship(back_populates="user", lazy="selectin")
+    collection_blacklist: Mapped[list["CollectionBlacklist"]] = relationship(back_populates="user", lazy="selectin")
 
 
 class Dictionary(UUIDBase):
@@ -83,3 +85,24 @@ class Collection(UUIDBase):
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"))
     user: Mapped[User | None] = relationship(back_populates="collections", lazy="selectin")
     lexemes: Mapped[list[Lexeme]] = relationship(lazy="noload", secondary=lexeme_collection)
+
+
+@declarative_mixin
+class Blacklist:
+    is_active: Mapped[bool] = mapped_column(default=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
+
+    @property
+    @declared_attr
+    def user(self) -> Mapped[User]:
+        return relationship(back_populates="collections", lazy="selectin")
+
+
+class LexemeBlacklist(Blacklist, UUIDBase):
+    lexeme_id: Mapped[UUID] = mapped_column(ForeignKey("lexeme.id"))
+    lexeme: Mapped[Lexeme] = relationship(back_populates="lexeme_blacklists", lazy="noload")
+
+
+class CollectionBlacklist(Blacklist, UUIDBase):
+    collection_id: Mapped[UUID] = mapped_column(ForeignKey("collection.id"))
+    collection: Mapped[Collection] = relationship(back_populates="collection_blacklists", lazy="noload")
