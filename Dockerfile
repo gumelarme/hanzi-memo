@@ -6,7 +6,7 @@ FROM python:3.10.13-alpine
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
     && apk update && apk add gcc \
     && mkdir -p /app
-    
+
 ADD ./ /app
 WORKDIR /app
 

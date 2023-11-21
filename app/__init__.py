@@ -1,8 +1,8 @@
 from urllib.request import Request
 
-from litestar import Litestar, Response, MediaType
-from litestar.logging import StructLoggingConfig
+from litestar import Litestar, MediaType, Response
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
+from litestar.logging import StructLoggingConfig
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from app.controller import index
@@ -27,7 +27,7 @@ def plain_text_exception_handler(_: Request, exc: Exception) -> Response:
 
 app = Litestar(
     logging_config=logging_config,
-    lifespan=[db_connection], # noqa
+    lifespan=[db_connection],  # noqa
     plugins=[SQLAlchemySerializationPlugin()],
     dependencies={"tx": provide_transaction},
     exception_handlers={

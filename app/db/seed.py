@@ -1,10 +1,11 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from resources.dictionary import parse_dict, Entry
 from resources.collections import parse_collection
+from resources.dictionary import Entry, parse_dict
+
 from .connection import get_engine, session_maker
-from .model import Dictionary, Lexeme, Definition, Collection
+from .model import Collection, Definition, Dictionary, Lexeme
 
 
 async def migrate_schema(engine: AsyncEngine = None, drop=False):
@@ -28,18 +29,22 @@ def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Diction
     for e in entries:
         definitions = []
         for d in e.definitions:
-            definitions.append(Definition(
-                text=d.text,
-                category=d.category,
-                dictionary=dictionary,
-            ))
+            definitions.append(
+                Definition(
+                    text=d.text,
+                    category=d.category,
+                    dictionary=dictionary,
+                )
+            )
 
-        lexemes.append(Lexeme(
-            zh_sc=e.zh_sc,
-            zh_tc=e.zh_tc,
-            pinyin=e.pinyin,
-            definitions=definitions,
-        ))
+        lexemes.append(
+            Lexeme(
+                zh_sc=e.zh_sc,
+                zh_tc=e.zh_tc,
+                pinyin=e.pinyin,
+                definitions=definitions,
+            )
+        )
 
     session.add_all(lexemes)
 
@@ -64,4 +69,3 @@ async def seed_collection(sources: list[str]):
             coll.lexemes = coll_lexemes
             collections.append(coll)
             session.add_all(collections)
-

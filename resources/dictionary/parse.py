@@ -1,6 +1,7 @@
 import os.path
 from typing import Type
-from . import CEDICTParser, Parser, Entry
+
+from . import CEDICTParser, Entry, Parser
 
 PARSER_FILE_PAIR: dict[str, tuple[Type[Parser], str]] = {
     "cedict": (CEDICTParser, "cedict_ts.u8"),

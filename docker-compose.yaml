@@ -1,11 +1,11 @@
 version: '3.1'
 services:
-  db: 
+  db:
     image: postgres:12-bullseye
     restart: on-failure
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${DB_USER:?error} 
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?error} 
-      POSTGRES_DB: ${DB_NAME:-hanzi_memo} 
+      POSTGRES_USER: ${DB_USER:?error}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?error}
+      POSTGRES_DB: ${DB_NAME:-hanzi_memo}

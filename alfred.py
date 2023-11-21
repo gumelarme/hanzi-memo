@@ -3,8 +3,9 @@ import sys
 from typing import Callable
 
 from dotenv import load_dotenv
-from app.db.seed import migrate_schema, seed_dict, seed_collection
+
 from app.db.connection import get_engine
+from app.db.seed import migrate_schema, seed_collection, seed_dict
 
 
 def migrate(args: list[str]):

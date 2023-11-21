@@ -1,5 +1,4 @@
 import os.path
-import re
 from dataclasses import dataclass
 
 COLL_FILE_PAIR = {
@@ -30,7 +29,7 @@ DELIMITER = "#"
 def parse_collection(source: str) -> tuple[str, list[ZHWord]]:
     name, filename = COLL_FILE_PAIR[source]
     filename = os.path.join(os.getcwd(), "resources/collections/source", filename)
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         words = []
         for word_pair in f.read().splitlines():
             sc, _, tc = [x.strip() for x in word_pair.partition(DELIMITER)]

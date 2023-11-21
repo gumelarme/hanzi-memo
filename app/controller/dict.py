@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 from litestar import get
-from litestar.dto import DTOConfig, DataclassDTO
+from litestar.dto import DataclassDTO, DTOConfig
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.model import Dictionary
 
 
@@ -25,7 +26,4 @@ class ReadDTO(DataclassDTO[Dictionary]):
 @get("/dicts", return_dto=ReadDTO)
 async def get_dictionaries(tx: AsyncSession) -> list[Dictionary]:
     dicts = await tx.scalars(select(Dictionary))
-    return dicts.all() # noqa
-
-
-
+    return dicts.all()  # noqa

@@ -1,6 +1,7 @@
 import re
-from .base import Definition, Entry
+
 from . import Parser
+from .base import Definition, Entry
 
 
 class CEDICTParser(Parser):
@@ -10,7 +11,7 @@ class CEDICTParser(Parser):
     @classmethod
     def parse_text(cls, text: str) -> list[Entry]:
         lines = text.split("\n")
-        return [cls.parse_line(line) for line in lines[cls.skip:]]
+        return [cls.parse_line(line) for line in lines[cls.skip :]]
 
     @classmethod
     def parse_line(cls, text: str) -> Entry:
@@ -27,8 +28,3 @@ class CEDICTParser(Parser):
     @classmethod
     def normalize_pinyin(cls, text: str) -> str:
         return text.replace("u:", "v") if ":" in text else text
-
-
-
-
-

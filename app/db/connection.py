@@ -1,15 +1,13 @@
-import os
-from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
+from litestar import Litestar
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-
-from litestar import Litestar
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 
 class DBSettings(BaseSettings):
@@ -57,4 +55,3 @@ async def provide_transaction(state: State) -> AsyncGenerator[AsyncSession, None
                 status_code=HTTP_409_CONFLICT,
                 detail=str(exc),
             ) from exc
-
