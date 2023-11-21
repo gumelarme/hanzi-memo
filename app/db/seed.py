@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from dictionary.parser import parse, Entry
 from .connection import get_engine, session_maker
-from .model import Collection, Lexeme, Definition
+from .model import Dictionary, Lexeme, Definition
 
 
 async def migrate_schema(engine: AsyncEngine = None, drop=False):
@@ -18,11 +18,11 @@ async def seed_dict(sources: list[str]):
         entries = parse(source)
         session = session_maker(bind=engine)
         async with session.begin():
-            coll = await Collection.add_ignore_exists(session, source)
-            add_entries(session, entries, coll)
+            d = await Dictionary.add_ignore_exists(session, source)
+            add_entries(session, entries, d)
 
 
-def add_entries(session: AsyncSession, entries: list[Entry], coll: Collection):
+def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Dictionary):
     lexemes = []
     for e in entries:
         definitions = []
@@ -30,13 +30,13 @@ def add_entries(session: AsyncSession, entries: list[Entry], coll: Collection):
             definitions.append(Definition(
                 text=d.text,
                 category=d.category,
+                dictionary=dictionary,
             ))
 
         lexemes.append(Lexeme(
             zh_sc=e.zh_sc,
             zh_tc=e.zh_tc,
             pinyin=e.pinyin,
-            collection=coll,
             definitions=definitions,
         ))
 

@@ -6,7 +6,7 @@ from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
 from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from app.controller import index
-from app.controller.dict import get_collections
+from app.controller.dict import get_dictionaries
 from app.db.connection import db_connection, provide_transaction
 
 logging_config = StructLoggingConfig()
@@ -36,6 +36,6 @@ app = Litestar(
     route_handlers=[
         index,
         # api,
-        get_collections,
+        get_dictionaries,
     ],
 )

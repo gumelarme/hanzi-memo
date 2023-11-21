@@ -8,20 +8,20 @@ from sqlalchemy.dialects.postgresql import UUID
 # email only for demo
 class User(UUIDBase):
     email: Mapped[str] = mapped_column(String(length=32))
-    user_collections: Mapped[list["Collection"]] = relationship(back_populates="user", lazy="selectin")
+    user_dictionaries: Mapped[list["Dictionary"]] = relationship(back_populates="user", lazy="selectin")
 
 
-class Collection(UUIDBase):
+class Dictionary(UUIDBase):
     name: Mapped[str]
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"))
-    user: Mapped[User | None] = relationship(back_populates="user_collections", lazy="selectin")
-    lexemes: Mapped[list["Lexeme"]] = relationship(back_populates="collection", lazy="select")
+    user: Mapped[User | None] = relationship(back_populates="user_dictionaries", lazy="selectin")
+    definitions: Mapped[list["Definition"]] = relationship(back_populates="dictionary", lazy="select")
 
     @classmethod
-    async def add_ignore_exists(cls, session: AsyncSession, name: str, user: User | None = None) -> "Collection":
+    async def add_ignore_exists(cls, session: AsyncSession, name: str, user: User | None = None) -> "Dictionary":
         is_exist = exists().where(cls.name == name).select()
         if not await session.scalar(is_exist):
-            session.add(Collection(name=name, user=user))
+            session.add(Dictionary(name=name, user=user))
 
         return await session.scalar(select(cls).where(cls.name == name))
 
@@ -54,15 +54,15 @@ class Definition(UUIDBase):
     category: Mapped[str | None]
     examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
 
+    dictionary_id: Mapped[UUID] = mapped_column(ForeignKey("dictionary.id"))
+    dictionary: Mapped[Dictionary] = relationship(back_populates="definitions")
+
 
 # TODO: Add constraint at least one of zh_sc or zh_tc must be filled
 class Lexeme(UUIDBase):
     zh_sc: Mapped[str | None]
     zh_tc: Mapped[str | None]
     pinyin: Mapped[str]
-
-    collection_id: Mapped[UUID] = mapped_column(ForeignKey("collection.id"))
-    collection: Mapped[Collection] = relationship(back_populates="lexemes")
 
     definitions: Mapped[list[Definition]] = relationship(secondary=lexeme_definition)
     examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)

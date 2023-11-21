@@ -4,7 +4,7 @@ from litestar import get
 from litestar.dto import DTOConfig, DataclassDTO
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.model import Collection
+from app.db.model import Dictionary
 
 
 @dataclass
@@ -13,19 +13,19 @@ class User:
 
 
 @dataclass
-class CollectionDTO:
+class Dictionary:
     name: str
     user: User | None
 
 
-class ReadDTO(DataclassDTO[CollectionDTO]):
+class ReadDTO(DataclassDTO[Dictionary]):
     config = DTOConfig()
 
 
-@get("/collections", return_dto=ReadDTO)
-async def get_collections(tx: AsyncSession) -> list[CollectionDTO]:
-    coll = await tx.scalars(select(Collection))
-    return coll.all() # noqa
+@get("/dicts", return_dto=ReadDTO)
+async def get_dictionaries(tx: AsyncSession) -> list[Dictionary]:
+    dicts = await tx.scalars(select(Dictionary))
+    return dicts.all() # noqa
 
 
 
