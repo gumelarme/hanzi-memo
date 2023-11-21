@@ -1,5 +1,5 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
-from sqlalchemy import Column, String, ForeignKey, Table, select, exists
+from sqlalchemy import Column, String, ForeignKey, Table, select, exists, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -8,13 +8,14 @@ from sqlalchemy.dialects.postgresql import UUID
 # email only for demo
 class User(UUIDBase):
     email: Mapped[str] = mapped_column(String(length=32))
-    user_dictionaries: Mapped[list["Dictionary"]] = relationship(back_populates="user", lazy="selectin")
+    dictionaries: Mapped[list["Dictionary"]] = relationship(back_populates="user", lazy="selectin")
+    collections: Mapped[list["Collection"]] = relationship(back_populates="user", lazy="selectin")
 
 
 class Dictionary(UUIDBase):
     name: Mapped[str]
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"))
-    user: Mapped[User | None] = relationship(back_populates="user_dictionaries", lazy="selectin")
+    user: Mapped[User | None] = relationship(back_populates="dictionaries", lazy="selectin")
     definitions: Mapped[list["Definition"]] = relationship(back_populates="dictionary", lazy="select")
 
     @classmethod
@@ -58,6 +59,7 @@ class Definition(UUIDBase):
     dictionary: Mapped[Dictionary] = relationship(back_populates="definitions")
 
 
+# TODO: Set Collation
 # TODO: Add constraint at least one of zh_sc or zh_tc must be filled
 class Lexeme(UUIDBase):
     zh_sc: Mapped[str | None]
@@ -67,3 +69,17 @@ class Lexeme(UUIDBase):
     definitions: Mapped[list[Definition]] = relationship(secondary=lexeme_definition)
     examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
 
+
+lexeme_collection = Table(
+    "lexeme_collection",
+    UUIDBase.metadata,
+    Column("lexeme_id", ForeignKey("lexeme.id")),
+    Column("collection_id", ForeignKey("collection.id")),
+)
+
+
+class Collection(UUIDBase):
+    name: Mapped[str]
+    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"))
+    user: Mapped[User | None] = relationship(back_populates="collections", lazy="selectin")
+    lexemes: Mapped[list[Lexeme]] = relationship(lazy="noload", secondary=lexeme_collection)
