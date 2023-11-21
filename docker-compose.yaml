@@ -6,6 +6,6 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: somepassword
-      POSTGRES_DB: hanzi_memo 
+      POSTGRES_USER: ${DB_USER:?error} 
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?error} 
+      POSTGRES_DB: ${DB_NAME:-hanzi_memo} 
