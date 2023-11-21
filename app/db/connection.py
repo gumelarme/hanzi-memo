@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
@@ -8,12 +9,26 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from litestar import Litestar
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class DBSettings(BaseSettings):
+    user: str
+    password: str
+    host: str
+    port: int
+    name: str = "hanzi_memo"
+
+    model_config = SettingsConfigDict(
+        case_sensitive=False,
+        env_prefix="DB_",
+    )
 
 
 def get_engine():
-    debug = True
-    conn_str = "postgresql+asyncpg://postgres:somepassword@localhost:5432/hanzi_memo"
-    return create_async_engine(conn_str, echo=debug)
+    s = DBSettings()
+    conn_str = f"postgresql+asyncpg://{s.user}:{s.password}@{s.host}:{s.port}/{s.name}"
+    return create_async_engine(conn_str, echo=True)
 
 
 @asynccontextmanager

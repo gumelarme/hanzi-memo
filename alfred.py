@@ -2,6 +2,7 @@ import asyncio
 import sys
 from typing import Callable
 
+from dotenv import load_dotenv
 from app.db.seed import migrate_schema, seed_dict
 from app.db.connection import get_engine
 
@@ -27,4 +28,5 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     main()
