@@ -1,0 +1,11 @@
+version: '3.1'
+services:
+  db: 
+    image: postgres:12-bullseye
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: somepassword
+      POSTGRES_DB: hanzi_memo 
