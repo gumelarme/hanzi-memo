@@ -3,7 +3,7 @@ import sys
 from typing import Callable
 
 from dotenv import load_dotenv
-from app.db.seed import migrate_schema, seed_dict
+from app.db.seed import migrate_schema, seed_dict, seed_collection
 from app.db.connection import get_engine
 
 
@@ -14,7 +14,8 @@ def migrate(args: list[str]):
 
 commands: dict[str, Callable] = {
     "migrate": migrate,
-    "populate": lambda args: asyncio.run(seed_dict(args)),
+    "seed_dict": lambda args: asyncio.run(seed_dict(args)),
+    "seed_coll": lambda args: asyncio.run(seed_collection(args)),
 }
 
 

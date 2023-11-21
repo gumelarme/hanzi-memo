@@ -1,9 +1,10 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from dictionary.parser import parse, Entry
+from resources.dictionary import parse_dict, Entry
+from resources.collections import parse_collection
 from .connection import get_engine, session_maker
-from .model import Dictionary, Lexeme, Definition
+from .model import Dictionary, Lexeme, Definition, Collection
 
 
 async def migrate_schema(engine: AsyncEngine = None, drop=False):
@@ -15,7 +16,7 @@ async def migrate_schema(engine: AsyncEngine = None, drop=False):
 async def seed_dict(sources: list[str]):
     engine = get_engine()
     for source in sources:
-        entries = parse(source)
+        entries = parse_dict(source)
         session = session_maker(bind=engine)
         async with session.begin():
             d = await Dictionary.add_ignore_exists(session, source)
@@ -41,4 +42,26 @@ def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Diction
         ))
 
     session.add_all(lexemes)
+
+
+async def seed_collection(sources: list[str]):
+    engine = get_engine()
+    for source in sources:
+        name, words = parse_collection(source)
+        session = session_maker(bind=engine)
+        collections = []
+        async with session.begin():
+            coll = Collection(name=name)
+
+            coll_lexemes = []
+            for x in words:
+                lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
+                if not lexemes:
+                    lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
+
+                coll_lexemes.extend(lexemes)
+
+            coll.lexemes = coll_lexemes
+            collections.append(coll)
+            session.add_all(collections)
 

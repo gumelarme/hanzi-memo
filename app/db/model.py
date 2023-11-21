@@ -1,5 +1,5 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
-from sqlalchemy import Column, String, ForeignKey, Table, select, exists, Boolean
+from sqlalchemy import Column, String, ForeignKey, Table, select, exists, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_mixin, declared_attr
 from sqlalchemy.dialects.postgresql import UUID
@@ -66,10 +66,18 @@ class Definition(UUIDBase):
 class Lexeme(UUIDBase):
     zh_sc: Mapped[str | None]
     zh_tc: Mapped[str | None]
-    pinyin: Mapped[str]
+    pinyin: Mapped[str | None]
 
     definitions: Mapped[list[Definition]] = relationship(secondary=lexeme_definition)
     examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
+
+    @classmethod
+    async def find(cls, session: AsyncSession, sc: str, tc: str | None = None) -> list["Lexeme"]:
+        if not tc:
+            tc = sc
+
+        query = select(cls).where(or_(cls.zh_sc == sc, cls.zh_tc == tc))
+        return list((await session.scalars(query)).all())
 
 
 lexeme_collection = Table(
@@ -92,17 +100,14 @@ class Blacklist:
     is_active: Mapped[bool] = mapped_column(default=True)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
 
-    @property
-    @declared_attr
-    def user(self) -> Mapped[User]:
-        return relationship(back_populates="collections", lazy="selectin")
-
 
 class LexemeBlacklist(Blacklist, UUIDBase):
+    user: Mapped[User] = relationship(back_populates="lexeme_blacklist", lazy="selectin")
     lexeme_id: Mapped[UUID] = mapped_column(ForeignKey("lexeme.id"))
-    lexeme: Mapped[Lexeme] = relationship(back_populates="lexeme_blacklists", lazy="noload")
+    lexeme: Mapped[Lexeme] = relationship(lazy="noload")
 
 
 class CollectionBlacklist(Blacklist, UUIDBase):
+    user: Mapped[User] = relationship(back_populates="collection_blacklist", lazy="selectin")
     collection_id: Mapped[UUID] = mapped_column(ForeignKey("collection.id"))
-    collection: Mapped[Collection] = relationship(back_populates="collection_blacklists", lazy="noload")
+    collection: Mapped[Collection] = relationship(lazy="noload")

@@ -1,12 +1,12 @@
 from .base import Entry, Parser, Definition
 from .cedict import CEDICTParser
-from .parse import parse
+from .parse import parse_dict
 
 __all__ = [
     "Entry",
     "Parser",
     "Definition",
     "CEDICTParser",
-    "parse",
+    "parse_dict",
 ]
 
