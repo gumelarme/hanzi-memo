@@ -1,23 +1,43 @@
+from dataclasses import dataclass
+
 import jieba
-from advanced_alchemy.extensions.litestar.dto import SQLAlchemyDTO
 from litestar import get
-from litestar.dto import DTOConfig
+from litestar.dto import DataclassDTO
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.model import Lexeme
 
 
-class LexemeDTO(SQLAlchemyDTO[Lexeme]):
-    config = DTOConfig(exclude={"examples", "definitions"}, max_nested_depth=100)
+@dataclass
+class LexemeOut:
+    id: str
+    zh_sc: str | None
+    zh_tc: str | None
+    pinyin: str | None
+
+    @classmethod
+    def from_lexeme(cls, lex: Lexeme, visible: bool = True):
+        return LexemeOut(
+            id=lex.id,
+            zh_sc=lex.zh_sc,
+            zh_tc=lex.zh_tc,
+            pinyin=lex.pinyin,
+        )
 
 
-# TODO: Change to dict[str, list[Lexeme]]
-# it somehow doesnt work, figure it out
-@get("/pinyin/{zh:str}", return_dto=LexemeDTO, sync_to_thread=False)
-async def get_pinyin(tx: AsyncSession, zh: str) -> list[Lexeme]:
+@dataclass
+class Segments:
+    segment: str
+    pinyin: list[LexemeOut]
+    is_visible: bool = True
+
+
+@get("/pinyin/{zh:str}", return_dto=DataclassDTO[Segments])
+async def get_pinyin(tx: AsyncSession, zh: str) -> list[Segments]:
     words = []
     for x in jieba.cut(zh):
-        lex = await Lexeme.find(tx, sc=x)
-        words.extend(lex)
+        lexemes = await Lexeme.find(tx, sc=x)
+        lex_out = [LexemeOut.from_lexeme(x) for x in lexemes]
+        words.append(Segments(segment=x, pinyin=lex_out))
 
     return words
