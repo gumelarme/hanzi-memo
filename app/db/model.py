@@ -29,7 +29,7 @@ class Dictionary(UUIDBase):
         back_populates="dictionaries", lazy="selectin"
     )
     definitions: Mapped[list["Definition"]] = relationship(
-        back_populates="dictionary", lazy="select"
+        back_populates="dictionary", lazy="selectin"
     )
 
     @classmethod
@@ -72,7 +72,9 @@ class Definition(UUIDBase):
     examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
 
     dictionary_id: Mapped[UUID] = mapped_column(ForeignKey("dictionary.id"))
-    dictionary: Mapped[Dictionary] = relationship(back_populates="definitions")
+    dictionary: Mapped[Dictionary] = relationship(
+        back_populates="definitions", lazy="select"
+    )
 
 
 lexeme_collection = Table(
@@ -91,10 +93,11 @@ class Lexeme(UUIDBase):
     pinyin: Mapped[str | None]
 
     definitions: Mapped[list[Definition]] = relationship(
-        secondary=lexeme_definition, lazy="noload"
+        secondary=lexeme_definition,
+        lazy="selectin",
     )
     examples: Mapped[list[Example]] = relationship(
-        secondary=lexeme_example, lazy="noload"
+        secondary=lexeme_example, lazy="selectin"
     )
     collections: Mapped[list["Collection"]] = relationship(
         secondary=lexeme_collection, lazy="noload", back_populates="lexemes"

@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.controller.base import D, d
-from app.db.model import Collection
+from app.controller.lexeme import LexemeDTO
+from app.db.model import Collection, Lexeme, lexeme_collection
 
 
 class CollectionDTO(SQLAlchemyDTO[Collection]):
@@ -23,7 +24,24 @@ class CollectionController(Controller):
 
     @get("/{coll_id:str}")
     async def get_collection_by_id(
-        self, tx: AsyncSession, coll_id: str
+        self,
+        tx: AsyncSession,
+        coll_id: str,
     ) -> D[Collection]:
         query = select(Collection).where(Collection.id == coll_id)
         return d(await tx.scalar(query))
+
+    @get("/{coll_id:str}/lexemes", return_dto=LexemeDTO)
+    async def get_lexeme_by_collection(
+        self,
+        tx: AsyncSession,
+        coll_id: str,
+    ) -> D[list[Lexeme]]:
+        query = (
+            select(Lexeme)
+            .join(lexeme_collection)
+            .join(Collection)
+            .where(Collection.id == coll_id)
+        )
+
+        return d(await tx.scalars(query))
