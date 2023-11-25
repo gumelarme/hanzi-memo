@@ -75,6 +75,14 @@ class Definition(UUIDBase):
     dictionary: Mapped[Dictionary] = relationship(back_populates="definitions")
 
 
+lexeme_collection = Table(
+    "lexeme_collection",
+    UUIDBase.metadata,
+    Column("lexeme_id", ForeignKey("lexeme.id")),
+    Column("collection_id", ForeignKey("collection.id")),
+)
+
+
 # TODO: Set Collation
 # TODO: Add constraint at least one of zh_sc or zh_tc must be filled
 class Lexeme(UUIDBase):
@@ -82,8 +90,15 @@ class Lexeme(UUIDBase):
     zh_tc: Mapped[str | None]
     pinyin: Mapped[str | None]
 
-    definitions: Mapped[list[Definition]] = relationship(secondary=lexeme_definition)
-    examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
+    definitions: Mapped[list[Definition]] = relationship(
+        secondary=lexeme_definition, lazy="noload"
+    )
+    examples: Mapped[list[Example]] = relationship(
+        secondary=lexeme_example, lazy="noload"
+    )
+    collections: Mapped[list["Collection"]] = relationship(
+        secondary=lexeme_collection, lazy="noload", back_populates="lexemes"
+    )
 
     @classmethod
     async def find(
@@ -96,22 +111,17 @@ class Lexeme(UUIDBase):
         return list((await session.scalars(query)).all())
 
 
-lexeme_collection = Table(
-    "lexeme_collection",
-    UUIDBase.metadata,
-    Column("lexeme_id", ForeignKey("lexeme.id")),
-    Column("collection_id", ForeignKey("collection.id")),
-)
-
-
 class Collection(UUIDBase):
     name: Mapped[str]
     user_id: Mapped[UUID | None] = mapped_column(ForeignKey("user.id"))
     user: Mapped[User | None] = relationship(
         back_populates="collections", lazy="selectin"
     )
+
     lexemes: Mapped[list[Lexeme]] = relationship(
-        lazy="noload", secondary=lexeme_collection
+        lazy="selectin",
+        secondary=lexeme_collection,
+        back_populates="collections",
     )
 
 
