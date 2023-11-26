@@ -1,6 +1,7 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from litestar import Controller, get
 from litestar.dto import DTOConfig
+from litestar.exceptions import ClientException, HTTPException, NotFoundException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,7 +30,8 @@ class CollectionController(Controller):
         coll_id: str,
     ) -> D[Collection]:
         query = select(Collection).where(Collection.id == coll_id)
-        return d(await tx.scalar(query))
+        result = await tx.scalars(query)
+        return d(result.one())
 
     @get("/{coll_id:str}/lexemes", return_dto=LexemeDTO)
     async def get_lexeme_by_collection(

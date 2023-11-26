@@ -19,7 +19,7 @@ class LexemeController(Controller):
     @get("/{lex_id:str}")
     async def get_lexeme(self, tx: AsyncSession, lex_id: str) -> D[Lexeme]:
         query = select(Lexeme).where(Lexeme.id == lex_id)
-        return d(await tx.scalar(query))
+        return d((await tx.scalars(query)).one())
 
     # XXX: Untested with real data
     @get("/{lex_id:str}/examples", return_dto=SQLAlchemyDTO[Example])
