@@ -5,28 +5,16 @@ from litestar import Litestar
 from litestar.datastructures import State
 from litestar.exceptions import ClientException
 from litestar.status_codes import HTTP_409_CONFLICT
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-
-class DBSettings(BaseSettings):
-    user: str
-    password: str
-    host: str
-    port: int
-    name: str = "hanzi_memo"
-
-    model_config = SettingsConfigDict(
-        case_sensitive=False,
-        env_prefix="DB_",
-    )
+from app.config import DBSettings
 
 
 def get_engine():
     s = DBSettings()
     conn_str = f"postgresql+asyncpg://{s.user}:{s.password}@{s.host}:{s.port}/{s.name}"
-    return create_async_engine(conn_str, echo=False)
+    return create_async_engine(conn_str, echo=s.debug)
 
 
 @asynccontextmanager

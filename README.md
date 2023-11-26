@@ -20,6 +20,7 @@ A helper for studying chinese
     DB_HOST=localhost
     DB_PORT=5432
     DB_NAME=hanzi_memo
+    DB_DEBUG=false
     ```
 1. Create the tables:
     ```shell
@@ -41,7 +42,11 @@ A helper for studying chinese
    python -m alfred seed_text demo
    ```
 ### Run the app
-1. To run the app
-   ```shell
-   litestar run --reload
-   ```
+   1. To run the app
+      ```shell
+      litestar run --reload
+      ```
+   1. Schema available at
+      ```http request
+      GET /schema/
+      ```
