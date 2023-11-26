@@ -1,5 +1,6 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from tqdm import tqdm
 
 from resources.collections import parse_collection
 from resources.dictionary import Entry, parse_dict
@@ -26,7 +27,7 @@ async def seed_dict(sources: list[str]):
 
 def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Dictionary):
     lexemes = []
-    for e in entries:
+    for e in tqdm(entries, desc=f"Seeding {dictionary.name}"):
         definitions = []
         for d in e.definitions:
             definitions.append(
@@ -46,6 +47,7 @@ def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Diction
             )
         )
 
+    print("Finishing up..")
     session.add_all(lexemes)
 
 
@@ -59,7 +61,7 @@ async def seed_collection(sources: list[str]):
             coll = Collection(name=name)
 
             coll_lexemes = []
-            for x in words:
+            for x in tqdm(words, desc=f"Seeding {source}"):
                 lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
                 if not lexemes:
                     lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]

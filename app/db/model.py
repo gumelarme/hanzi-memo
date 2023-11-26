@@ -126,7 +126,7 @@ class Collection(UUIDBase):
     )
 
     lexemes: Mapped[list[Lexeme]] = relationship(
-        lazy="selectin",
+        lazy="noload",
         secondary=lexeme_collection,
         back_populates="collections",
     )

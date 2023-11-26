@@ -4,6 +4,10 @@ from dataclasses import dataclass
 COLL_FILE_PAIR = {
     "hsk1": ("HSK1", "hsk1.txt"),
     "hsk2": ("HSK2", "hsk2.txt"),
+    "hsk3": ("HSK3", "hsk3.txt"),
+    "hsk4": ("HSK4", "hsk4.txt"),
+    "hsk5": ("HSK5", "hsk5.txt"),
+    "hsk6": ("HSK6", "hsk6.txt"),
 }
 
 

@@ -26,7 +26,7 @@ class DBSettings(BaseSettings):
 def get_engine():
     s = DBSettings()
     conn_str = f"postgresql+asyncpg://{s.user}:{s.password}@{s.host}:{s.port}/{s.name}"
-    return create_async_engine(conn_str, echo=True)
+    return create_async_engine(conn_str, echo=False)
 
 
 @asynccontextmanager
