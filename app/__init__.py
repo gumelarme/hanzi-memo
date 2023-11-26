@@ -13,6 +13,7 @@ from app.controller.collection import CollectionController
 from app.controller.dict import DictionaryController
 from app.controller.lexeme import LexemeController
 from app.controller.pinyin import get_pinyin
+from app.controller.text import TextController
 from app.db.connection import db_connection, provide_transaction
 
 logging_config = StructLoggingConfig(
@@ -68,5 +69,6 @@ app = Litestar(
         CollectionController,
         LexemeController,
         DictionaryController,
+        TextController,
     ],
 )
