@@ -32,6 +32,7 @@ class Segment:
     segment: str
     pinyin: list[LexemeOut]
     is_visible: bool = True
+    strict_visible: bool = True
 
 
 @get("/pinyin/{zh:str}", return_dto=DataclassDTO[Segment])
@@ -55,12 +56,21 @@ async def get_pinyin(
         if isinstance(seg, str):
             word, lex = seg, []
             visible = False
+            strict_visible = False
         else:
             word, lex = seg
             visible = any([x.id not in blacklist for x in lex])
             lex = [LexemeOut.from_lexeme(x) for x in lex]
 
-        result.append(Segment(word, lex, visible))
+            strict_visible = visible
+            if visible:
+                each_char_lexemes = [await Lexeme.find(tx, x) for x in list(word)]
+                each_char_found = []
+                for lexemes in each_char_lexemes:
+                    each_char_found.append(any([x.id in blacklist for x in lexemes]))
+                strict_visible = not all(each_char_found)
+
+        result.append(Segment(word, lex, visible, strict_visible))
 
     return result
 
