@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Callable, Generator
 
 import jieba
 from litestar import get
@@ -41,27 +42,51 @@ async def get_pinyin(
     blacklist_lexeme: str | None,
 ) -> list[Segment]:
     blacklist = await get_blacklisted(tx, blacklist_collection, blacklist_lexeme)
-    words = []
-    for x in jieba.cut(zh):
-        lexemes = await Lexeme.find(tx, sc=x)
 
-        # TODO: refactor, too repetitive
-        if not lexemes:
-            for seg in split_no_repeat(x):
-                lexemes = await Lexeme.find(tx, sc=seg)
-                words.append(create_segments(seg, lexemes, blacklist))
+    # 1st, intelligent cut
+    # 2nd, re-split segments that not found on db
+    # 3rd, give up and split by char
+    segments = await try_segment(tx, [zh], jieba.cut)
+    segments = await try_segment(tx, segments, split_no_repeat)
+    segments = await try_segment(tx, segments, list)
+
+    result = []
+    for seg in segments:
+        if isinstance(seg, str):
+            word, lex = seg, []
+            visible = False
+        else:
+            word, lex = seg
+            visible = any([x.id not in blacklist for x in lex])
+            lex = [LexemeOut.from_lexeme(x) for x in lex]
+
+        result.append(Segment(word, lex, visible))
+
+    return result
+
+
+MaybeSegment = str | tuple[str, list[Lexeme]]
+Cutter = Callable[[str], Generator[str, any, None] | list[str]]
+
+
+async def try_segment(
+    tx: AsyncSession, texts: list[MaybeSegment], method: Cutter
+) -> list[MaybeSegment]:
+    result: list[MaybeSegment] = []
+    for text in texts:
+        if isinstance(text, tuple):
+            result.append(text)
             continue
 
-        words.append(create_segments(x, lexemes, blacklist))
-    return words
+        for word in method(text):
+            lexemes = await Lexeme.find(tx, sc=word)
+            if not lexemes:
+                result.append(word)
+                continue
 
+            result.append((word, lexemes))
 
-def create_segments(
-    word: str, lex: list[Lexeme], blacklist: Sequence[Lexeme.id]
-) -> Segment:
-    visible = any([x.id not in blacklist for x in lex])
-    lex_out = [LexemeOut.from_lexeme(x) for x in lex]
-    return Segment(segment=word, pinyin=lex_out, is_visible=visible)
+    return result
 
 
 async def get_blacklisted(
