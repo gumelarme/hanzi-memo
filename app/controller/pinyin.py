@@ -64,15 +64,27 @@ async def get_pinyin(
 
             strict_visible = visible
             if visible:
-                each_char_lexemes = [await Lexeme.find(tx, x) for x in list(word)]
-                each_char_found = []
-                for lexemes in each_char_lexemes:
-                    each_char_found.append(any([x.id in blacklist for x in lexemes]))
-                strict_visible = not all(each_char_found)
+                strict_visible = await is_each_char_blacklisted(tx, blacklist, word)
 
         result.append(Segment(word, lex, visible, strict_visible))
 
     return result
+
+
+async def is_each_char_blacklisted(
+    tx: AsyncSession,
+    blacklist: Sequence[Lexeme],
+    word: str,
+) -> bool:
+    """
+    each char might be in a collection, but the combinations doesn't
+    this assumes if individual char are learned, then the combinations is also learned
+    """
+    each_char_lexemes = [await Lexeme.find(tx, x) for x in list(word)]
+    each_char_found = []
+    for lexemes in each_char_lexemes:
+        each_char_found.append(any([x.id in blacklist for x in lexemes]))
+    return not all(each_char_found)
 
 
 MaybeSegment = str | tuple[str, list[Lexeme]]
