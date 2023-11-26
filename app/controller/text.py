@@ -11,7 +11,7 @@ class TextController(Controller):
     path = "/texts"
     return_dto = SQLAlchemyDTO[Text]
 
-    @get("")
+    @get("/")
     async def get_texts(self, tx: AsyncSession) -> D[list[Text]]:
         query = select(Text).limit(100)
         return d((await tx.scalars(query)).all())

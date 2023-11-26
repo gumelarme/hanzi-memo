@@ -7,6 +7,7 @@ from litestar.dto import DataclassDTO
 from sqlalchemy import Sequence, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.controller.base import D, d
 from app.db.model import Collection, Lexeme, lexeme_collection
 
 
@@ -35,13 +36,13 @@ class Segment:
     strict_visible: bool = True
 
 
-@get("/pinyin/{zh:str}", return_dto=DataclassDTO[Segment])
+@get("/pinyins/{zh:str}", return_dto=DataclassDTO[Segment])
 async def get_pinyin(
     tx: AsyncSession,
     zh: str,
     blacklist_collection: str | None,
     blacklist_lexeme: str | None,
-) -> list[Segment]:
+) -> D[list[Segment]]:
     blacklist = await get_blacklisted(tx, blacklist_collection, blacklist_lexeme)
 
     # 1st, intelligent cut
@@ -68,7 +69,7 @@ async def get_pinyin(
 
         result.append(Segment(word, lex, visible, strict_visible))
 
-    return result
+    return d(result)
 
 
 async def is_each_char_blacklisted(
