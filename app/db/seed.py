@@ -4,9 +4,10 @@ from tqdm import tqdm
 
 from resources.collections import parse_collection
 from resources.dictionary import Entry, parse_dict
+from resources.text import parse_text
 
 from .connection import get_engine, session_maker
-from .model import Collection, Definition, Dictionary, Lexeme
+from .model import Collection, Definition, Dictionary, Lexeme, Text
 
 
 async def migrate_schema(engine: AsyncEngine = None, drop=False):
@@ -71,3 +72,15 @@ async def seed_collection(sources: list[str]):
             coll.lexemes = coll_lexemes
             collections.append(coll)
             session.add_all(collections)
+
+
+async def seed_text(sources: list[str]):
+    engine = get_engine()
+    for source in sources:
+        texts = []
+        for title, text in parse_text(source):
+            texts.append(Text(title=title, text=text))
+
+        session = session_maker(bind=engine)
+        async with session.begin():
+            session.add_all(texts)

@@ -152,3 +152,8 @@ class CollectionBlacklist(Blacklist, UUIDBase):
     )
     collection_id: Mapped[UUID] = mapped_column(ForeignKey("collection.id"))
     collection: Mapped[Collection] = relationship(lazy="noload")
+
+
+class Text(UUIDBase):
+    title: Mapped[str] = mapped_column(default="")
+    text: Mapped[str] = mapped_column(default="")

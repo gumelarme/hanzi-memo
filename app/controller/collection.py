@@ -1,7 +1,6 @@
 from advanced_alchemy.extensions.litestar import SQLAlchemyDTO
 from litestar import Controller, get
 from litestar.dto import DTOConfig
-from litestar.exceptions import ClientException, HTTPException, NotFoundException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
