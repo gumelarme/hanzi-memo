@@ -9,7 +9,7 @@ from litestar.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from app.controller import index
 from app.controller.collection import CollectionController
-from app.controller.dict import get_dictionaries
+from app.controller.dict import DictionaryController
 from app.controller.lexeme import LexemeController
 from app.controller.pinyin import get_pinyin
 from app.db.connection import db_connection, provide_transaction
@@ -54,9 +54,9 @@ app = Litestar(
     },
     route_handlers=[
         index,
-        get_dictionaries,
         get_pinyin,
         CollectionController,
         LexemeController,
+        DictionaryController,
     ],
 )

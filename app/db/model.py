@@ -29,7 +29,7 @@ class Dictionary(UUIDBase):
         back_populates="dictionaries", lazy="selectin"
     )
     definitions: Mapped[list["Definition"]] = relationship(
-        back_populates="dictionary", lazy="selectin"
+        back_populates="dictionary", lazy="noload"
     )
 
     @classmethod
