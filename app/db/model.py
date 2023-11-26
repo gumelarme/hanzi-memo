@@ -110,7 +110,11 @@ class Lexeme(UUIDBase):
         if not tc:
             tc = sc
 
-        query = select(cls).where(or_(cls.zh_sc == sc, cls.zh_tc == tc))
+        query = (
+            select(cls)
+            .where(or_(cls.zh_sc == sc, cls.zh_tc == tc))
+            .order_by(cls.pinyin)
+        )
         return list((await session.scalars(query)).all())
 
 
