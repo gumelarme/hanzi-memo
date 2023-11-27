@@ -15,10 +15,12 @@ def migrate(args: list[str]):
 
 commands: dict[str, Callable] = {
     "migrate": migrate,
-    "seed_dict": lambda args: asyncio.run(seed_dict(args)),
+    "seed_dict": lambda args: asyncio.run(seed_dict(*args)),
     "seed_coll": lambda args: asyncio.run(seed_collection(args)),
     "seed_text": lambda args: asyncio.run(seed_text(args)),
 }
+
+seeding_func = Callable[[str, int, int | None], None]
 
 
 def main():
@@ -27,7 +29,14 @@ def main():
         print(f"Command {cmd!r} not found")
         return
 
-    commands[cmd](args)
+    # XXX: this is a quick hack
+    if cmd == "seed_dict":
+        source, *start_end = args
+        start = int(start_end[0]) if len(start_end) > 0 else 0
+        end = int(start_end[1]) if len(start_end) > 1 else None
+        commands[cmd]([source, start, end])
+    else:
+        commands[cmd](args)
 
 
 if __name__ == "__main__":

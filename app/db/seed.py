@@ -28,20 +28,24 @@ def _chunks(lst, n):
         yield lst[i : i + n]
 
 
-async def seed_dict(sources: list[str]):
+async def seed_dict(source: str, start: int = 0, end: int | None = 0):
     engine = get_engine()
-    for source in sources:
-        entries = parse_dict(source)
 
-        print("Splitting dicts into chunks")
-        chunks = _chunks(entries, DICT_CHUNK_SIZE)
-        count = ceil(len(entries) / DICT_CHUNK_SIZE)
-        for i, chunk in enumerate(chunks):
-            session = session_maker(bind=engine)
-            async with session.begin():
-                d = await Dictionary.add_ignore_exists(session, source)
-                print(f"Adding {i+1} of {count}...")
-                add_entries(session, chunk, d)
+    start = max(start, min(0, start))
+    end = end if end is None else max(start, end)
+
+    print(f"Seeding dict {start}:{end}")
+    print(f"Splitting dicts into chunks of {DICT_CHUNK_SIZE}")
+
+    entries = parse_dict(source)[start:end]
+    chunks = _chunks(entries, DICT_CHUNK_SIZE)
+    count = ceil(len(entries) / DICT_CHUNK_SIZE)
+    for i, chunk in enumerate(chunks):
+        session = session_maker(bind=engine)
+        async with session.begin():
+            d = await Dictionary.add_ignore_exists(session, source)
+            print(f"Adding {i+1} of {count}...")
+            add_entries(session, chunk, d)
 
 
 def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Dictionary):
