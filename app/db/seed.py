@@ -1,3 +1,5 @@
+from math import ceil
+
 from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from tqdm import tqdm
@@ -16,14 +18,29 @@ async def migrate_schema(engine: AsyncEngine = None, drop=False):
         await conn.run_sync(func)
 
 
-async def seed_dict(sources: list[str]):
+CHUNK_SIZE = 5000
+
+
+def _chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
+
+
+async def seed_dict(sources: list[str], start_from: int = 0):
     engine = get_engine()
     for source in sources:
         entries = parse_dict(source)
-        session = session_maker(bind=engine)
-        async with session.begin():
-            d = await Dictionary.add_ignore_exists(session, source)
-            add_entries(session, entries, d)
+
+        print("Splitting dicts into chunks")
+        chunks = _chunks(entries, CHUNK_SIZE)
+        count = ceil(len(entries) / CHUNK_SIZE)
+        for i, chunk in enumerate(chunks):
+            session = session_maker(bind=engine)
+            async with session.begin():
+                d = await Dictionary.add_ignore_exists(session, source)
+                print(f"Adding {i} of {count}...")
+                add_entries(session, chunk, d)
 
 
 def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Dictionary):
