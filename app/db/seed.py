@@ -18,7 +18,8 @@ async def migrate_schema(engine: AsyncEngine = None, drop=False):
         await conn.run_sync(func)
 
 
-CHUNK_SIZE = 5000
+DICT_CHUNK_SIZE = 5000
+COLLECTION_CHUNK_SIZE = 500
 
 
 def _chunks(lst, n):
@@ -27,19 +28,19 @@ def _chunks(lst, n):
         yield lst[i : i + n]
 
 
-async def seed_dict(sources: list[str], start_from: int = 0):
+async def seed_dict(sources: list[str]):
     engine = get_engine()
     for source in sources:
         entries = parse_dict(source)
 
         print("Splitting dicts into chunks")
-        chunks = _chunks(entries, CHUNK_SIZE)
-        count = ceil(len(entries) / CHUNK_SIZE)
+        chunks = _chunks(entries, DICT_CHUNK_SIZE)
+        count = ceil(len(entries) / DICT_CHUNK_SIZE)
         for i, chunk in enumerate(chunks):
             session = session_maker(bind=engine)
             async with session.begin():
                 d = await Dictionary.add_ignore_exists(session, source)
-                print(f"Adding {i} of {count}...")
+                print(f"Adding {i+1} of {count}...")
                 add_entries(session, chunk, d)
 
 
@@ -73,22 +74,27 @@ async def seed_collection(sources: list[str]):
     engine = get_engine()
     for source in sources:
         name, words = parse_collection(source)
-        session = session_maker(bind=engine)
         collections = []
-        async with session.begin():
-            coll = Collection(name=name)
 
-            coll_lexemes = []
-            for x in tqdm(words, desc=f"Seeding {source}"):
-                lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
-                if not lexemes:
-                    lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
+        print("Splitting collection into chunks")
+        chunks = _chunks(words, COLLECTION_CHUNK_SIZE)
+        count = ceil(len(words) / COLLECTION_CHUNK_SIZE)
+        for i, words in enumerate(chunks):
+            print(f"Adding {i+1} of {count}...")
+            session = session_maker(bind=engine)
+            async with session.begin():
+                coll = Collection(name=name)
+                coll_lexemes = []
+                for x in tqdm(words, desc=f"Seeding {source}"):
+                    lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
+                    if not lexemes:
+                        lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
 
-                coll_lexemes.extend(lexemes)
+                    coll_lexemes.extend(lexemes)
 
-            coll.lexemes = coll_lexemes
-            collections.append(coll)
-            session.add_all(collections)
+                coll.lexemes = coll_lexemes
+                collections.append(coll)
+                session.add_all(collections)
 
 
 async def seed_text(sources: list[str]):
