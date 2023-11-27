@@ -44,7 +44,11 @@ A helper for studying chinese
 ### Run the app
    1. To run the app
       ```shell
+      # development
       litestar run --reload
+
+      # deploy
+      litestar run --host 0.0.0.0
       ```
    1. Schema available at
       ```http request
