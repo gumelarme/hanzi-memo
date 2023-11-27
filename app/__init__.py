@@ -1,7 +1,7 @@
 import logging
 
 import structlog
-from litestar import Litestar, MediaType, Request, Response
+from litestar import Litestar, MediaType, Request, Response, Router
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
 from litestar.exceptions import HTTPException
 from litestar.logging import StructLoggingConfig
@@ -64,11 +64,16 @@ app = Litestar(
         Exception: json_logger_exception_handler,
     },
     route_handlers=[
-        index,
-        get_pinyin,
-        CollectionController,
-        LexemeController,
-        DictionaryController,
-        TextController,
+        Router(
+            path="/api",
+            route_handlers=[
+                index,
+                get_pinyin,
+                CollectionController,
+                LexemeController,
+                DictionaryController,
+                TextController,
+            ],
+        )
     ],
 )
