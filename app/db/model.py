@@ -43,14 +43,20 @@ class Dictionary(UUIDBase):
         return await session.scalar(select(cls).where(cls.name == name))
 
 
-# TODO: Add constraint at least one of lexeme or definition must be filled
 lexeme_example = Table(
     "lexeme_example",
     UUIDBase.metadata,
     Column("lexeme_id", ForeignKey("lexeme.id"), nullable=True),
+    Column("example_id", ForeignKey("example.id")),
+)
+
+definition_example = Table(
+    "definition_example",
+    UUIDBase.metadata,
     Column("definition_id", ForeignKey("definition.id"), nullable=True),
     Column("example_id", ForeignKey("example.id")),
 )
+
 
 lexeme_definition = Table(
     "lexeme_definition",
@@ -69,7 +75,7 @@ class Example(UUIDBase):
 class Definition(UUIDBase):
     text: Mapped[str]
     category: Mapped[str | None]
-    examples: Mapped[list[Example]] = relationship(secondary=lexeme_example)
+    examples: Mapped[list[Example]] = relationship(secondary=definition_example)
 
     dictionary_id: Mapped[UUID] = mapped_column(ForeignKey("dictionary.id"))
     dictionary: Mapped[Dictionary] = relationship(
