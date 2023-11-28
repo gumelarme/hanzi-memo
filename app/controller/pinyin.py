@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Generator
 
 import jieba
-from litestar import get
+from litestar import Request, get
 from litestar.dto import DataclassDTO
 from litestar.exceptions import ValidationException
 from sqlalchemy import Sequence, select
@@ -42,6 +42,7 @@ CHAR_LIMIT = 1000
 
 @get("/pinyins/{zh:str}", return_dto=DataclassDTO[Segment])
 async def get_pinyin(
+    request: Request,
     tx: AsyncSession,
     zh: str,
     blacklist_collection: str | None,
@@ -59,7 +60,14 @@ async def get_pinyin(
     # 2nd, re-split segments that not found on db
     # 3rd, give up and split by char
     segments = await try_segment(tx, [zh], jieba.cut)
-    segments = await try_segment(tx, segments, split_no_repeat)
+
+    try:
+        segments = await try_segment(tx, segments, split_no_repeat)
+    except Exception as e:
+        segments = await try_segment(tx, segments, lambda x: split_no_repeat(x, True))
+        request.logger.exception(e)
+        request.logger.error("failed on split_no_repeat", segments=segments)
+
     segments = await try_segment(tx, segments, list)
 
     result = []
@@ -151,7 +159,7 @@ async def get_blacklisted(
     return blacklists
 
 
-def split_no_repeat(text: str) -> list[str]:
+def split_no_repeat(text: str, gracefully=False) -> list[str]:
     index = -1
     lex = []
     for tok in jieba.tokenize(text, True):
@@ -164,8 +172,11 @@ def split_no_repeat(text: str) -> list[str]:
 
     # FIXME: might return n < len(text)
     if (joined := "".join(lex)) != text:
-        raise Exception(
-            f"Failed to split `{text}`({len(text)}), instead got `{joined}` ({len(joined)})"
-        )
+        if not gracefully:
+            raise Exception(
+                f"Failed to split `{text}`({len(text)}), instead got `{joined}` ({len(joined)})"
+            )
+        else:
+            return [text]
 
     return lex

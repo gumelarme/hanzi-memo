@@ -88,7 +88,7 @@ async def seed_one_collection(session: AsyncSession, parsed: tuple[str, list[ZHW
     coll = Collection(name=name)
     coll_lexemes = []
 
-    print("Splitting collection into chunks")
+    print(f"Splitting collection {name!r} into chunks of {COLLECTION_CHUNK_SIZE}")
     chunks = _chunks(words, COLLECTION_CHUNK_SIZE)
     count = ceil(len(words) / COLLECTION_CHUNK_SIZE)
 
