@@ -4,7 +4,7 @@ from litestar.contrib.sqlalchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from tqdm import tqdm
 
-from resources.collections import parse_collection
+from resources.collections import ZHWord, parse_collection
 from resources.dictionary import Entry, parse_dict
 from resources.text import parse_text
 
@@ -40,9 +40,9 @@ async def seed_dict(source: str, start: int = 0, end: int | None = 0):
     entries = parse_dict(source)[start:end]
     chunks = _chunks(entries, DICT_CHUNK_SIZE)
     count = ceil(len(entries) / DICT_CHUNK_SIZE)
-    for i, chunk in enumerate(chunks):
-        session = session_maker(bind=engine)
-        async with session.begin():
+    session = session_maker(bind=engine)
+    async with session.begin():
+        for i, chunk in enumerate(chunks):
             d = await Dictionary.add_ignore_exists(session, source)
             print(f"Adding {i+1} of {count}...")
             add_entries(session, chunk, d)
@@ -76,29 +76,33 @@ def add_entries(session: AsyncSession, entries: list[Entry], dictionary: Diction
 
 async def seed_collection(sources: list[str]):
     engine = get_engine()
-    for source in sources:
-        name, words = parse_collection(source)
-        collections = []
+    session = session_maker(bind=engine)
+    async with session.begin():
+        for source in sources:
+            parsed = parse_collection(source)
+            await seed_one_collection(session, parsed)
 
-        print("Splitting collection into chunks")
-        chunks = _chunks(words, COLLECTION_CHUNK_SIZE)
-        count = ceil(len(words) / COLLECTION_CHUNK_SIZE)
-        for i, words in enumerate(chunks):
-            print(f"Adding {i+1} of {count}...")
-            session = session_maker(bind=engine)
-            async with session.begin():
-                coll = Collection(name=name)
-                coll_lexemes = []
-                for x in tqdm(words, desc=f"Seeding {source}"):
-                    lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
-                    if not lexemes:
-                        lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
 
-                    coll_lexemes.extend(lexemes)
+async def seed_one_collection(session: AsyncSession, parsed: tuple[str, list[ZHWord]]):
+    name, words = parsed
+    coll = Collection(name=name)
+    coll_lexemes = []
 
-                coll.lexemes = coll_lexemes
-                collections.append(coll)
-                session.add_all(collections)
+    print("Splitting collection into chunks")
+    chunks = _chunks(words, COLLECTION_CHUNK_SIZE)
+    count = ceil(len(words) / COLLECTION_CHUNK_SIZE)
+
+    for i, words in enumerate(chunks):
+        print(f"Adding {i + 1} of {count}...")
+        for x in tqdm(words):
+            lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
+            if not lexemes:
+                lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
+
+            coll_lexemes.extend(lexemes)
+
+        coll.lexemes = coll_lexemes
+        session.add(coll)
 
 
 async def seed_text(sources: list[str]):
