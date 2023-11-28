@@ -5,6 +5,7 @@ from litestar import Litestar, MediaType, Request, Response, Router
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
 from litestar.exceptions import HTTPException
 from litestar.logging import StructLoggingConfig
+from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -61,11 +62,15 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
     return res
 
 
+rate_limit_config = RateLimitConfig(("minute", 100))
+
+
 app = Litestar(
     logging_config=logging_config,
     lifespan=[db_connection],  # noqa
     plugins=[SQLAlchemySerializationPlugin()],
     dependencies={"tx": provide_transaction},
+    middleware=[rate_limit_config.middleware],
     exception_handlers={
         Exception: json_logger_exception_handler,
     },
