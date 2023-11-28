@@ -1,5 +1,15 @@
 from litestar.contrib.sqlalchemy.base import UUIDBase
-from sqlalchemy import Column, ForeignKey, String, Table, exists, or_, select
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Index,
+    String,
+    Table,
+    UniqueConstraint,
+    exists,
+    or_,
+    select,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, declarative_mixin, mapped_column, relationship
@@ -88,6 +98,8 @@ lexeme_collection = Table(
     UUIDBase.metadata,
     Column("lexeme_id", ForeignKey("lexeme.id")),
     Column("collection_id", ForeignKey("collection.id")),
+    UniqueConstraint("lexeme_id", "collection_id"),
+    Index("lexeme_id", "collection_id"),
 )
 
 
@@ -107,6 +119,11 @@ class Lexeme(UUIDBase):
     )
     collections: Mapped[list["Collection"]] = relationship(
         secondary=lexeme_collection, lazy="noload", back_populates="lexemes"
+    )
+
+    __table_args__ = (
+        UniqueConstraint("zh_sc", "zh_tc", "pinyin", name="zh_pinyin_combo"),
+        Index("zh_index", "zh_sc", "zh_tc"),
     )
 
     @classmethod
