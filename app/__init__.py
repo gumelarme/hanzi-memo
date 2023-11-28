@@ -2,6 +2,7 @@ import logging
 
 import structlog
 from litestar import Litestar, MediaType, Request, Response, Router
+from litestar.config.cors import CORSConfig
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
 from litestar.exceptions import HTTPException
 from litestar.logging import StructLoggingConfig
@@ -63,6 +64,11 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
 
 
 rate_limit_config = RateLimitConfig(("minute", 100))
+cors = CORSConfig(
+    allow_origins=["*"],
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 
 app = Litestar(
@@ -71,6 +77,7 @@ app = Litestar(
     plugins=[SQLAlchemySerializationPlugin()],
     dependencies={"tx": provide_transaction},
     middleware=[rate_limit_config.middleware],
+    cors_config=cors,
     exception_handlers={
         Exception: json_logger_exception_handler,
     },
