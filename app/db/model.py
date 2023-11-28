@@ -177,6 +177,30 @@ class CollectionBlacklist(Blacklist, UUIDBase):
     collection: Mapped[Collection] = relationship(lazy="noload")
 
 
+preset_collection = Table(
+    "preset_collection",
+    UUIDBase.metadata,
+    Column("preset_id", ForeignKey("preset.id")),
+    Column("collection_id", ForeignKey("collection.id")),
+)
+
+preset_lexeme = Table(
+    "preset_lexeme",
+    UUIDBase.metadata,
+    Column("preset_id", ForeignKey("preset.id")),
+    Column("lexeme_id", ForeignKey("lexeme.id")),
+)
+
+
 class Text(UUIDBase):
     title: Mapped[str] = mapped_column(default="")
     text: Mapped[str] = mapped_column(default="")
+
+
+class Preset(UUIDBase):
+    friendly_name: Mapped[str] = mapped_column()  # TODO: use hashids
+    text_id: Mapped[UUID] = mapped_column(ForeignKey("text.id"))
+    text: Mapped[Text] = relationship(lazy="select")
+
+    lexemes: Mapped[list[Lexeme]] = relationship(secondary=preset_lexeme)
+    collections: Mapped[list[Collection]] = relationship(secondary=preset_collection)
