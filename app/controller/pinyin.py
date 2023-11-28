@@ -4,6 +4,7 @@ from typing import Callable, Generator
 import jieba
 from litestar import get
 from litestar.dto import DataclassDTO
+from litestar.exceptions import ValidationException
 from sqlalchemy import Sequence, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,6 +37,9 @@ class Segment:
     strict_visible: bool = True
 
 
+CHAR_LIMIT = 1000
+
+
 @get("/pinyins/{zh:str}", return_dto=DataclassDTO[Segment])
 async def get_pinyin(
     tx: AsyncSession,
@@ -43,6 +47,12 @@ async def get_pinyin(
     blacklist_collection: str | None,
     blacklist_lexeme: str | None,
 ) -> D[list[Segment]]:
+    if len(zh) > CHAR_LIMIT:
+        raise ValidationException(
+            detail="Character limit exceeded",
+            extra={"zh": f"maximum allowed character: {CHAR_LIMIT}"},
+        )
+
     blacklist = await get_blacklisted(tx, blacklist_collection, blacklist_lexeme)
 
     # 1st, intelligent cut

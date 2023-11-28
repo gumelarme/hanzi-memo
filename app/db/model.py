@@ -112,7 +112,7 @@ class Lexeme(UUIDBase):
 
     definitions: Mapped[list[Definition]] = relationship(
         secondary=lexeme_definition,
-        lazy="selectin",
+        lazy="noload",
     )
     examples: Mapped[list[Example]] = relationship(
         secondary=lexeme_example, lazy="selectin"

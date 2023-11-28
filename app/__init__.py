@@ -35,17 +35,17 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
     status_code = getattr(exc, "status_code", HTTP_500_INTERNAL_SERVER_ERROR)
     detail = getattr(exc, "detail", "Internal Server Error")
 
-    if not isinstance(exc, HTTPException):
-        request.logger.exception(exc)
+    if isinstance(exc, HTTPException):
+        request.logger.exception(str(exc))
+    else:
+        if isinstance(exc, NoResultFound):
+            status_code = HTTP_404_NOT_FOUND
+            detail = "resource not found"
+            request.logger.error(str(exc))
+        else:
+            request.logger.exception(exc)
 
-    if isinstance(exc, NoResultFound):
-        status_code = HTTP_404_NOT_FOUND
-        detail = "resource not found"
-        request.logger.exception(exc)
-
-    request.logger.error(exc)
-
-    return Response(
+    res = Response(
         media_type=MediaType.JSON,
         content={
             "detail": detail,
@@ -53,6 +53,12 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
         },
         status_code=status_code,
     )
+
+    if isinstance(exc, HTTPException):
+        res.headers = exc.headers
+        res.content["extra"] = exc.extra
+
+    return res
 
 
 app = Litestar(
