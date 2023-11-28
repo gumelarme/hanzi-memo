@@ -64,11 +64,7 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
 
 
 rate_limit_config = RateLimitConfig(("minute", 100))
-cors = CORSConfig(
-    allow_origins=["*"],
-    allow_methods=["GET", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-)
+cors = CORSConfig()
 
 
 app = Litestar(
