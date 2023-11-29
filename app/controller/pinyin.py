@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Generator
+from uuid import UUID
 
 import jieba
 from litestar import Request, get
@@ -73,19 +74,26 @@ async def get_pinyin(
     result = []
     for seg in segments:
         if isinstance(seg, str):
-            word, lex = seg, []
+            word, lex_outs = seg, []
             visible = False
             strict_visible = False
         else:
-            word, lex = seg
-            visible = any([x.id not in blacklist for x in lex])
-            lex = [LexemeOut.from_lexeme(x) for x in lex]
+            word, lex_ids = seg
+            visible = any([x not in blacklist for x in lex_ids])
+
+            lex_outs = []
+            for l_id in lex_ids:
+                lexeme = await tx.get(Lexeme, l_id)
+                if lexeme is None:
+                    raise Exception("Lexeme not found with find by id ")
+
+                lex_outs.append(LexemeOut.from_lexeme(lexeme))  # noqa
 
             strict_visible = visible
             if visible:
                 strict_visible = await is_each_char_blacklisted(tx, blacklist, word)
 
-        result.append(Segment(word, lex, visible, strict_visible))
+        result.append(Segment(word, lex_outs, visible, strict_visible))
 
     return d(result)
 
@@ -99,14 +107,14 @@ async def is_each_char_blacklisted(
     each char might be in a collection, but the combinations doesn't
     this assumes if individual char are learned, then the combinations is also learned
     """
-    each_char_lexemes = [await Lexeme.find(tx, x) for x in list(word)]
+    each_char_lexemes = [await Lexeme.find_id(tx, x) for x in list(word)]
     each_char_found = []
     for lexemes in each_char_lexemes:
-        each_char_found.append(any([x.id in blacklist for x in lexemes]))
+        each_char_found.append(any([x in blacklist for x in lexemes]))
     return not all(each_char_found)
 
 
-MaybeSegment = str | tuple[str, list[Lexeme]]
+MaybeSegment = str | tuple[str, list[UUID]]
 Cutter = Callable[[str], Generator[str, any, None] | list[str]]
 
 
@@ -120,7 +128,7 @@ async def try_segment(
             continue
 
         for word in method(text):
-            lexemes = await Lexeme.find(tx, sc=word)
+            lexemes = await Lexeme.find_id(tx, sc=word)
             if not lexemes:
                 result.append(word)
                 continue

@@ -1,6 +1,7 @@
 from math import ceil
 
 from litestar.contrib.sqlalchemy.base import UUIDBase
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from tqdm import tqdm
 
@@ -95,11 +96,14 @@ async def seed_one_collection(session: AsyncSession, parsed: tuple[str, list[ZHW
     for i, words in enumerate(chunks):
         print(f"Adding {i + 1} of {count}...")
         for x in tqdm(words):
-            lexemes = await Lexeme.find(session, x.zh_sc, x.zh_tc)
-            if not lexemes:
-                lexemes = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
+            lexeme_ids = await Lexeme.find_id(session, x.zh_sc, x.zh_tc)
+            if not lexeme_ids:
+                lexeme_objects = [Lexeme(zh_sc=x.zh_sc, zh_tc=x.zh_tc)]
+            else:
+                query = select(Lexeme).where(Lexeme.id.in_(lexeme_ids))
+                lexeme_objects = (await session.scalars(query)).all()
 
-            coll_lexemes.extend(lexemes)
+            coll_lexemes.extend(lexeme_objects)
 
         coll.lexemes = coll_lexemes
         session.add(coll)

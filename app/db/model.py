@@ -127,14 +127,17 @@ class Lexeme(UUIDBase):
     )
 
     @classmethod
-    async def find(
-        cls, session: AsyncSession, sc: str, tc: str | None = None
-    ) -> list["Lexeme"]:
+    async def find_id(
+        cls,
+        session: AsyncSession,
+        sc: str,
+        tc: str | None = None,
+    ) -> list[UUID]:
         if not tc:
             tc = sc
 
         query = (
-            select(cls)
+            select(cls.id)
             .where(or_(cls.zh_sc == sc, cls.zh_tc == tc))
             .order_by(cls.pinyin)
         )
