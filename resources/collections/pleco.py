@@ -1,7 +1,10 @@
 import os
+import re
 from xml.etree import ElementTree
 
 from . import ZHWord
+
+RE_PINYIN_UNIT = re.compile(r"([a-zA-Z]+\d)")
 
 
 def normalize_pinyin(pinyin: str):
@@ -14,7 +17,8 @@ def normalize_pinyin(pinyin: str):
     for k, v in umlaut_u.items():
         pinyin = pinyin.replace(k, v)
 
-    return pinyin
+    groups = RE_PINYIN_UNIT.findall(pinyin)
+    return " ".join(groups)
 
 
 def parse_pleco(filename: str) -> dict[str, set[ZHWord]]:
