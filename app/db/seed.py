@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from tqdm import tqdm
 
 from resources.collections import ZHWord, parse_collection
+from resources.collections.pleco import parse_pleco
 from resources.dictionary import Entry, parse_dict
 from resources.text import parse_text
 
@@ -119,3 +120,32 @@ async def seed_text(sources: list[str]):
         session = session_maker(bind=engine)
         async with session.begin():
             session.add_all(texts)
+
+
+async def seed_pleco(sources: list[str]):
+    session = session_maker(bind=get_engine())
+    collections = parse_pleco(sources[0])
+    async with session.begin():
+        for coll_name, words in collections.items():
+            coll = Collection(name=coll_name)
+            coll_lexeme = []
+            for word in tqdm(words, desc=f"Seeding collection `{coll_name}`"):
+                lexeme_ids = await Lexeme.find_id(
+                    session, sc=word.zh_sc, tc=word.zh_tc, pinyin=word.pinyin
+                )
+
+                if len(lexeme_ids) > 1:
+                    print(f"DEBUG: Found multiple lexeme for {word}")
+                    print(lexeme_ids)
+
+                if not lexeme_ids:
+                    lexeme_objects = [
+                        Lexeme(zh_sc=word.zh_sc, zh_tc=word.zh_tc, pinyin=word.pinyin)
+                    ]
+                else:
+                    query = select(Lexeme).where(Lexeme.id.in_(lexeme_ids))
+                    lexeme_objects = (await session.scalars(query)).all()
+
+                coll_lexeme.append(lexeme_objects[0])
+            coll.lexemes = coll_lexeme
+            session.add(coll)

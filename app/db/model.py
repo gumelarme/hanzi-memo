@@ -6,6 +6,7 @@ from sqlalchemy import (
     String,
     Table,
     UniqueConstraint,
+    and_,
     exists,
     or_,
     select,
@@ -132,15 +133,16 @@ class Lexeme(UUIDBase):
         session: AsyncSession,
         sc: str,
         tc: str | None = None,
+        pinyin: str | None = None,
     ) -> list[UUID]:
-        if not tc:
-            tc = sc
+        # If everything is specified, find the exact thing
+        if all([pinyin, tc]):
+            clause = and_(cls.zh_sc == sc, cls.pinyin == pinyin, cls.zh_tc == tc)
+        else:
+            tc = sc if not tc else tc
+            clause = or_(cls.zh_sc == sc, cls.zh_tc == tc, cls.pinyin == pinyin)
 
-        query = (
-            select(cls.id)
-            .where(or_(cls.zh_sc == sc, cls.zh_tc == tc))
-            .order_by(cls.pinyin)
-        )
+        query = select(cls.id).where(clause).order_by(cls.pinyin)
         return list((await session.scalars(query)).all())
 
 

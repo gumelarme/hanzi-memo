@@ -5,7 +5,13 @@ from typing import Callable
 from dotenv import load_dotenv
 
 from app.db.connection import get_engine
-from app.db.seed import migrate_schema, seed_collection, seed_dict, seed_text
+from app.db.seed import (
+    migrate_schema,
+    seed_collection,
+    seed_dict,
+    seed_pleco,
+    seed_text,
+)
 
 
 async def migrate(args: list[str]):
@@ -18,6 +24,7 @@ commands: dict[str, Callable] = {
     "seed_dict": seed_dict,
     "seed_coll": seed_collection,
     "seed_text": seed_text,
+    "seed_pleco": seed_pleco,
 }
 
 seeding_func = Callable[[str, int, int | None], None]

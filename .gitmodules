@@ -1,0 +1,3 @@
+[submodule "resources/collections/data"]
+	path = resources/collections/data
+	url = git@github.com:gumelarme/hanzi-memo-collections.git
