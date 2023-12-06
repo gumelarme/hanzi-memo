@@ -34,7 +34,13 @@ class CollectionController(Controller):
     @get("/")
     async def get_collections(self, tx: AsyncSession) -> D[list[CollectionD]]:
         collections = []
-        query = select(Collection).where(Collection.user_id.is_(None)).limit(100)
+        query = (
+            select(Collection)
+            .where(Collection.user_id.is_(None))
+            .order_by(Collection.name)
+            .limit(100)
+        )
+
         coll: Collection
         for coll in (await tx.scalars(query)).all():
             lexemes = await CollectionController._lexeme_collection(tx, coll.id, 10)
