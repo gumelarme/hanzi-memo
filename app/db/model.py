@@ -14,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, declarative_mixin, mapped_column, relationship
+from sqlalchemy.sql.functions import count
 
 
 # email only for demo
@@ -142,7 +143,17 @@ class Lexeme(UUIDBase):
             tc = sc if not tc else tc
             clause = or_(cls.zh_sc == sc, cls.zh_tc == tc, cls.pinyin == pinyin)
 
-        query = select(cls.id).where(clause).order_by(cls.pinyin)
+        query = (
+            select(cls.id)
+            .join(lexeme_collection, isouter=True)
+            .where(clause)
+            .group_by(cls.id)
+            .order_by(
+                count(lexeme_collection.columns["lexeme_id"]).desc(),
+                cls.pinyin,
+            )
+        )
+
         return list((await session.scalars(query)).all())
 
 
