@@ -136,17 +136,18 @@ class Lexeme(UUIDBase):
         tc: str | None = None,
         pinyin: str | None = None,
     ) -> list[UUID]:
-        # If everything is specified, find the exact thing
-        if all([pinyin, tc]):
-            clause = and_(cls.zh_sc == sc, cls.pinyin == pinyin, cls.zh_tc == tc)
-        else:
-            tc = sc if not tc else tc
-            clause = or_(cls.zh_sc == sc, cls.zh_tc == tc, cls.pinyin == pinyin)
+        # find the exact thing if every arg is specified
+        clause = and_ if all([pinyin, tc]) else or_
+
+        tc = sc if not tc else tc
+        conditions = [cls.zh_sc == sc, cls.zh_tc == tc]
+        if pinyin:
+            conditions.append(cls.pinyin == pinyin)
 
         query = (
             select(cls.id)
             .join(lexeme_collection, isouter=True)
-            .where(clause)
+            .where(clause(*conditions))
             .group_by(cls.id)
             .order_by(
                 count(lexeme_collection.columns["lexeme_id"]).desc(),
