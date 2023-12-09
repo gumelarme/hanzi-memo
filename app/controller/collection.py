@@ -31,7 +31,7 @@ class CollectionController(Controller):
     path = "/collections"
     return_dto = DataclassDTO[CollectionD]
 
-    @get("/")
+    @get("/", cache=10 * 60)
     async def get_collections(self, tx: AsyncSession) -> D[list[CollectionD]]:
         collections = []
         query = (

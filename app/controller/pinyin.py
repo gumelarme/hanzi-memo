@@ -41,7 +41,7 @@ class Segment:
 CHAR_LIMIT = 1000
 
 
-@get("/pinyins/{zh:str}", return_dto=DataclassDTO[Segment])
+@get("/pinyins/{zh:str}", return_dto=DataclassDTO[Segment], cache=60 * 3)
 async def get_pinyin(
     request: Request,
     tx: AsyncSession,

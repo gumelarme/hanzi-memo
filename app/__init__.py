@@ -1,4 +1,5 @@
 import logging
+import os
 
 import structlog
 from litestar import Litestar, MediaType, Request, Response, Router
@@ -63,7 +64,8 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
     return res
 
 
-rate_limit_config = RateLimitConfig(("minute", 100))
+rate = os.environ.get("APP_RATE_LIMIT", 1000)
+rate_limit_config = RateLimitConfig(("minute", rate))
 cors = CORSConfig()
 
 

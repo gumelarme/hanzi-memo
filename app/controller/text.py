@@ -13,7 +13,7 @@ class TextController(Controller):
     path = "/texts"
     return_dto = SQLAlchemyDTO[Text]
 
-    @get("/")
+    @get("/", cache=10 * 60)
     async def get_texts(self, tx: AsyncSession) -> D[list[Text]]:
         query = select(Text).where(Text.id.not_in(exclude_presets)).limit(100)
         return d((await tx.scalars(query)).all())
