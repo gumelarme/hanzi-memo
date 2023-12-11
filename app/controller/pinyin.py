@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Callable, Generator
 from uuid import UUID
@@ -69,7 +70,7 @@ async def get_pinyin(
         request.logger.exception(e)
         request.logger.error("failed on split_no_repeat", segments=segments)
 
-    segments = await try_segment(tx, segments, list)
+    segments = await try_segment(tx, segments, split_if_chinese)
 
     result = []
     for seg in segments:
@@ -188,3 +189,13 @@ def split_no_repeat(text: str, gracefully=False) -> list[str]:
             return [text]
 
     return lex
+
+
+RE_ASCII = re.compile(r"[ -~]+")
+
+
+def split_if_chinese(text: str) -> list[str]:
+    if RE_ASCII.match(text):
+        return [text]
+
+    return list(text)
