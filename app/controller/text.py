@@ -15,7 +15,13 @@ class TextController(Controller):
 
     @get("/", cache=10 * 60)
     async def get_texts(self, tx: AsyncSession) -> D[list[Text]]:
-        query = select(Text).where(Text.id.not_in(exclude_presets)).limit(100)
+        query = (
+            select(Text)
+            .where(Text.id.not_in(exclude_presets))
+            .order_by(Text.title)
+            .limit(100)
+        )
+
         return d((await tx.scalars(query)).all())
 
     @get("/{text_id:str}")
