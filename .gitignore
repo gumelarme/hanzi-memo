@@ -3,3 +3,7 @@ venv/
 __pycache__/
 .env*
 .sandbox
+
+# direnv
+.direnv/
+.envrc
