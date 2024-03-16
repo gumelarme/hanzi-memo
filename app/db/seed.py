@@ -30,7 +30,14 @@ def _chunks(lst, n):
         yield lst[i : i + n]
 
 
-async def seed_dict(source: str, start: int = 0, end: int | None = 0):
+async def seed_dict(args: list[str]):
+    source, *start_end = args
+    start = int(start_end[0]) if len(start_end) > 0 else 0
+    end = int(start_end[1]) if len(start_end) > 1 else None
+    await _seed_dict(source, start, end)
+
+
+async def _seed_dict(source: str, start: int = 0, end: int | None = 0):
     engine = get_engine()
 
     start = max(start, min(0, start))
