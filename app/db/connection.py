@@ -30,6 +30,7 @@ async def db_connection(app: Litestar) -> AsyncGenerator[None, None]:
         await engine.dispose()
 
 
+# FIXME: this is slow, even when imported but unused
 session_maker = async_sessionmaker(expire_on_commit=True)
 
 
