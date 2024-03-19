@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class DBSettings(BaseSettings):
+class DBConfig(BaseSettings):
     user: str
     password: str
     host: str

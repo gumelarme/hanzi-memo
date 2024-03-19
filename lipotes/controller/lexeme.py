@@ -4,8 +4,8 @@ from litestar.dto import DTOConfig
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.controller.base import D, d
-from app.db.model import Example, Lexeme, lexeme_example
+from lipotes.controller.base import D, d
+from lipotes.db.model import Example, Lexeme, lexeme_example
 
 
 class LexemeDTO(SQLAlchemyDTO[Lexeme]):

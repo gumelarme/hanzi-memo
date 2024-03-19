@@ -3,8 +3,8 @@ from math import ceil
 from sqlalchemy.ext.asyncio import AsyncSession
 from tqdm import tqdm
 
-from app.db.connection import get_engine, session_maker
-from app.db.model import Definition, Dictionary, Lexeme
+from lipotes.db.connection import get_engine, session_maker
+from lipotes.db.model import Definition, Dictionary, Lexeme
 from resources.dictionary import Entry, parse_dict
 from resources.dictionary.parse import PARSER_FILE_PAIR
 

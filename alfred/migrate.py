@@ -1,6 +1,6 @@
 from advanced_alchemy.base import UUIDBase
 
-from app.db.connection import get_engine
+from lipotes.db.connection import get_engine
 
 from .command import Command
 

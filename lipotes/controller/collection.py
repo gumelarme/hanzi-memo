@@ -5,10 +5,10 @@ from litestar.dto import DataclassDTO
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.controller.base import D, d
-from app.controller.lexeme import LexemeDTO
-from app.controller.pinyin import LexemeOut
-from app.db.model import Collection, Lexeme, lexeme_collection
+from lipotes.controller.base import D, d
+from lipotes.controller.lexeme import LexemeDTO
+from lipotes.controller.pinyin import LexemeOut
+from lipotes.db.model import Collection, Lexeme, lexeme_collection
 
 
 @dataclass

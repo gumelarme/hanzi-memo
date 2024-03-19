@@ -10,8 +10,8 @@ from litestar.exceptions import ValidationException
 from sqlalchemy import Sequence, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.controller.base import D, d
-from app.db.model import Collection, Lexeme, lexeme_collection
+from lipotes.controller.base import D, d
+from lipotes.db.model import Collection, Lexeme, lexeme_collection
 
 
 @dataclass

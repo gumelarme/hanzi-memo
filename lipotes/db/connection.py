@@ -8,11 +8,11 @@ from litestar.status_codes import HTTP_409_CONFLICT
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.config import DBSettings
+from config import DBConfig
 
 
 def get_engine():
-    s = DBSettings()
+    s = DBConfig()
     conn_str = f"postgresql+asyncpg://{s.user}:{s.password}@{s.host}:{s.port}/{s.name}"
     return create_async_engine(conn_str, echo=s.debug)
 

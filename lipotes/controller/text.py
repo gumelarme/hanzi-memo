@@ -3,8 +3,8 @@ from litestar import Controller, get
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.controller.base import D, d
-from app.db.model import Preset, Text
+from lipotes.controller.base import D, d
+from lipotes.db.model import Preset, Text
 
 exclude_presets = select(Preset.text_id)
 

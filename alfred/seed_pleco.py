@@ -4,8 +4,8 @@ from pathlib import Path
 from sqlalchemy import select
 from tqdm import tqdm
 
-from app.db.connection import get_engine, session_maker
-from app.db.model import Collection, Lexeme
+from lipotes.db.connection import get_engine, session_maker
+from lipotes.db.model import Collection, Lexeme
 from resources.collections.pleco import parse_pleco
 
 from .command import Command

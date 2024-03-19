@@ -11,13 +11,13 @@ from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 from sqlalchemy.orm.exc import NoResultFound
 
-from app.controller import index
-from app.controller.collection import CollectionController
-from app.controller.dict import DictionaryController
-from app.controller.lexeme import LexemeController
-from app.controller.pinyin import get_pinyin
-from app.controller.text import TextController
-from app.db.connection import db_connection, provide_transaction
+from lipotes.controller import index
+from lipotes.controller.collection import CollectionController
+from lipotes.controller.dict import DictionaryController
+from lipotes.controller.lexeme import LexemeController
+from lipotes.controller.pinyin import get_pinyin
+from lipotes.controller.text import TextController
+from lipotes.db.connection import db_connection, provide_transaction
 
 logging_config = StructLoggingConfig(
     processors=[

@@ -4,8 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tqdm import tqdm
 
-from app.db.connection import get_engine, session_maker
-from app.db.model import Collection, Lexeme
+from lipotes.db.connection import get_engine, session_maker
+from lipotes.db.model import Collection, Lexeme
 from resources.collections import COLL_FILE_PAIR, ZHWord, parse_collection
 
 from .command import Command
