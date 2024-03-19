@@ -1,8 +1,9 @@
 import math
 
+from piccolo.query import Insert
 from tqdm import tqdm
 
-from lipotes.dictionary.tables import Lexeme
+from lipotes.dictionary.tables import Definition, Dictionary, Lexeme
 from resources.dictionary import Entry, parse_dict
 
 
@@ -16,7 +17,7 @@ async def seed(
     source: str,
     start: int = 0,
     end: int = -1,
-    chunk_size: int = 5000,
+    chunk_size: int = 2000,
 ):
     """
     Seed lexeme, definition, and dictionary table using available dicts
@@ -44,6 +45,10 @@ async def seed(
     else:
         end = max(start, end)
 
+    dictionary = (
+        Dictionary.objects().get_or_create(Dictionary.name == source).run_sync()
+    )
+
     print(f"{source} dictionary total {len(parsed_dict)} rows")
     message = f"Seeding {source} ({start}-{end}) in chunks of {chunk_size}"
     with tqdm(total=(end - start), desc=message) as progress_bar:
@@ -54,10 +59,31 @@ async def seed(
             if i >= end:
                 break
 
+            definitions = Definition.insert()
             lexemes = Lexeme.insert()
             for entry in entries:
                 lex = Lexeme(zh_sc=entry.zh_sc, zh_tc=entry.zh_tc, pinyin=entry.pinyin)
                 lexemes.add(lex)
 
-            await lexemes.returning(Lexeme.id).run()
+                add_definitions(definitions, entry, dictionary, lex)
+
+            await lexemes.run()
+            await definitions.run()
             progress_bar.update(1)
+
+
+def add_definitions(
+    bulk_insert: Insert[Definition],
+    entry: Entry,
+    dictionary: Dictionary,
+    lexeme: Lexeme,
+):
+    for d in entry.definitions:
+        bulk_insert.add(
+            Definition(
+                text=d.text,
+                category=d.category,
+                dictionary=dictionary,
+                lexeme=lexeme,
+            )
+        )
