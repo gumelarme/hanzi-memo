@@ -9,9 +9,23 @@ class CEDICTParser(Parser):
     CEDICT_LINE_REGEX = re.compile(r"(.+)(?<!,)\s(.+) \[(.+)] /(.+)/")
 
     @classmethod
+    def parse(cls, filename: str) -> list[Entry]:
+        with open(filename, "r") as f:
+            entries = []
+            for i, line in enumerate(f):
+                if i < cls.skip:
+                    continue
+                entries.append(cls.parse_line(line))
+            return entries
+
+    # @classmethod
+    # def parse_text(cls, text: str) -> list[Entry]:
+    #     lines = text.split("\n")
+    #     return [cls.parse_line(line) for line in lines[cls.skip :]]
+
+    @classmethod
     def parse_text(cls, text: str) -> list[Entry]:
-        lines = text.split("\n")
-        return [cls.parse_line(line) for line in lines[cls.skip :]]
+        pass
 
     @classmethod
     def parse_line(cls, text: str) -> Entry:

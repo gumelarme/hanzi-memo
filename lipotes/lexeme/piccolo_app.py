@@ -5,7 +5,10 @@ the APP_CONFIG.
 
 import os
 
-from piccolo.conf.apps import AppConfig, table_finder
+from piccolo.conf.apps import AppConfig, Command, table_finder
+
+from lipotes.lexeme.command.dict import list_dict
+from lipotes.lexeme.command.seed import seed
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,5 +20,5 @@ APP_CONFIG = AppConfig(
         modules=["lipotes.lexeme.tables"], exclude_imported=True
     ),
     migration_dependencies=[],
-    commands=[],
+    commands=[Command(list_dict, aliases=["help"]), Command(seed, aliases=["seed"])],
 )
