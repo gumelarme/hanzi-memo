@@ -17,4 +17,4 @@ DB = PostgresEngine(
     }
 )
 
-APP_REGISTRY = AppRegistry(apps=["lipotes.lexeme.piccolo_app"])
+APP_REGISTRY = AppRegistry(apps=["lipotes.dictionary.piccolo_app"])

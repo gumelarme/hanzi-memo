@@ -2,7 +2,7 @@ import math
 
 from tqdm import tqdm
 
-from lipotes.lexeme.tables import Lexeme
+from lipotes.dictionary.tables import Lexeme
 from resources.dictionary import Entry, parse_dict
 
 
@@ -19,12 +19,12 @@ async def seed(
     chunk_size: int = 5000,
 ):
     """
-    Seed lexeme table using available dicts
+    Seed lexeme, definition, and dictionary table using available dicts
 
     :param source:
         The dictionary name, for the complete list of available dictionary
         see 'resources/dictionary/source' directory or run:
-            piccolo lexeme help
+            piccolo dictionary help
     :param start:
         Seed from the nth chunk of the dict file
     :param end:
