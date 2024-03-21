@@ -13,14 +13,27 @@ async def forwards():
     # NOTE: Composite unique constraint are still unresolved issue
     # https://github.com/piccolo-orm/piccolo/issues/172
 
+    table_name = "lexeme_collection"
+    constraint_name = f"{table_name}_uq"
+
     async def add_unique_constraint():
         await LexemeCollection.raw(
-            """
-            ALTER TABLE lexeme_collection
-            ADD CONSTRAINT lexeme_collection_UQ
+            f"""
+            ALTER TABLE {table_name}
+            ADD CONSTRAINT {constraint_name}
             UNIQUE (collection_id, lexeme_id);
             """
         )
 
+    async def drop_unique_constraint():
+        await LexemeCollection.raw(
+            f"""
+            ALTER TABLE {table_name}
+            DROP CONSTRAINT {constraint_name};
+            """
+        )
+
     manager.add_raw(add_unique_constraint)
+    manager.add_raw_backwards(drop_unique_constraint)
+
     return manager
