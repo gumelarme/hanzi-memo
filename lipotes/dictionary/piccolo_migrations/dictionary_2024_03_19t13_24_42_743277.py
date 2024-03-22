@@ -1,16 +1,14 @@
 from piccolo.apps.migrations.auto.migration_manager import MigrationManager
 
+from lipotes.util.migration import make_table
+
 ID = "2024-03-19T13:24:42:743277"
 VERSION = "1.4.2"
 DESCRIPTION = "Init: table creation"
 
 
 def create_lexeme_table(manager: MigrationManager):
-    table = dict(
-        table_class_name="Lexeme",
-        tablename="lexeme",
-    )
-    manager.add_table(table["table_class_name"], tablename=table["tablename"])
+    table = make_table("Lexeme", "lexeme", manager)
     manager.add_column(
         **table,
         column_name="id",
@@ -50,12 +48,7 @@ def create_lexeme_table(manager: MigrationManager):
 
 
 def create_dictionary_table(manager: MigrationManager):
-    table = dict(
-        table_class_name="Dictionary",
-        tablename="dictionary",
-    )
-
-    manager.add_table(table["table_class_name"], tablename=table["tablename"])
+    table = make_table("Dictionary", "dictionary", manager)
     manager.add_column(
         **table,
         column_name="id",
@@ -77,12 +70,7 @@ def create_dictionary_table(manager: MigrationManager):
 
 
 def create_definition_table(manager: MigrationManager):
-    table = dict(
-        table_class_name="Definition",
-        tablename="definition",
-    )
-
-    manager.add_table(table["table_class_name"], tablename=table["tablename"])
+    table = make_table("Definition", "definition", manager)
     manager.add_column(
         **table,
         column_name="id",
