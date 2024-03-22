@@ -1,8 +1,10 @@
 import os
 
+from tqdm import tqdm
+
 from lipotes.collection.tables import Collection, LexemeCollection
 from lipotes.dictionary.tables import Lexeme
-from resources.collections import COLL_FILE_PAIR, parse_collection
+from resources.collections import COLL_FILE_PAIR, ZHWord, parse_collection
 
 
 async def seed(collections: str):
@@ -23,42 +25,46 @@ async def seed(collections: str):
         print_available_collections()
         return
 
-    for coll_name in collections:
-        name, parsed_collection = parse_collection(coll_name)
+    with tqdm(total=len(collections)) as progress_bar:
+        for coll_name in collections:
+            progress_bar.set_description(f"Seeding collection {coll_name}")
 
-        coll_lexemes = []
-        missing_lexeme = Lexeme.insert()
+            name, parsed_collection = parse_collection(coll_name)
+            await seed_collection(name, parsed_collection)
 
-        for word in parsed_collection:
-            lexemes = await Lexeme.select().where(
-                Lexeme.zh_sc == word.zh_tc, Lexeme.zh_tc == word.zh_tc
-            )
+            progress_bar.update(1)
 
-            if not lexemes:
-                # NOTE: this will create lexeme that are mentioned in the collections
-                # but not exists in the database.
-                # The lexeme added have no definitions.
-                # TODO: Add it to missing_lexeme tables, with reason/source and hits column
-                lexemes = [
-                    Lexeme(zh_sc=word.zh_sc, zh_tc=word.zh_tc, pinyin=word.pinyin)
-                ]
-                missing_lexeme.add(lexemes[0])
-            coll_lexemes.extend(lexemes)
 
+async def seed_collection(name: str, parsed_collection: list[ZHWord]):
+    coll_lexemes = []
+    missing_lexeme = Lexeme.insert()
+
+    for word in parsed_collection:
+        lexemes = await Lexeme.objects().where(
+            Lexeme.zh_sc == word.zh_sc, Lexeme.zh_tc == word.zh_tc
+        )
+
+        if not lexemes:
+            # NOTE: this will create lexeme that are mentioned in the collections
+            # but not exists in the database.
+            # The lexeme added have no definitions.
+            # TODO: Add it to missing_lexeme tables, with reason/source and hits column
+            lex = Lexeme(zh_sc=word.zh_sc, zh_tc=word.zh_tc, pinyin=word.pinyin)
+            lexemes = [lex]
+            missing_lexeme.add(lex)
+
+        coll_lexemes.extend(lexemes)
+
+    # noinspection PyProtectedMember
+    if missing_lexeme.add_delegate._add:
         await missing_lexeme.run()
 
-        bulk_insert = LexemeCollection.insert()
-
-        # TODO: Add owner to collection, so it doesn't override user defined dict
-        coll = await Collection.objects().get_or_create(Collection.name == name)
-        for lex in coll_lexemes:
-            bulk_insert.add(
-                LexemeCollection(
-                    collection=coll,
-                    lexeme=lex,
-                )
-            )
-        await bulk_insert.run()
+    bulk_insert = LexemeCollection.insert()
+    # TODO: Add owner to collection, so it doesn't override user defined dict
+    coll = await Collection.objects().get_or_create(Collection.name == name)
+    for lex in coll_lexemes:
+        bulk_insert.add(LexemeCollection(collection=coll, lexeme=lex))
+    await bulk_insert.run()
 
 
 def validate_collection(collection: str, resource_dir=None) -> None:
