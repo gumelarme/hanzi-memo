@@ -1,11 +1,8 @@
-"""
-Import all of the Tables subclasses in your app here, and register them with
-the APP_CONFIG.
-"""
-
 import os
 
-from piccolo.conf.apps import AppConfig, table_finder
+from piccolo.conf.apps import AppConfig, Command, table_finder
+
+from lipotes.collection.command.seed import seed
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,5 +14,5 @@ APP_CONFIG = AppConfig(
         modules=["lipotes.collection.tables"], exclude_imported=True
     ),
     migration_dependencies=[],
-    commands=[],
+    commands=[Command(seed)],
 )
