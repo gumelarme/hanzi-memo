@@ -42,7 +42,7 @@ def create_lexeme_collection_table(manager: MigrationManager):
     manager.add_column(
         **table,
         column_name="collection",
-        db_column_name="collection_id",
+        db_column_name="collection",
         column_class_name="ForeignKey",
         params={
             "references": "collection",
@@ -53,7 +53,7 @@ def create_lexeme_collection_table(manager: MigrationManager):
     manager.add_column(
         **table,
         column_name="lexeme",
-        db_column_name="lexeme_id",
+        db_column_name="lexeme",
         column_class_name="ForeignKey",
         params={
             "references": "lexeme",

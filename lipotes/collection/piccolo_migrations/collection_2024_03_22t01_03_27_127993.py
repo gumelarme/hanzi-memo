@@ -21,7 +21,7 @@ async def forwards():
             f"""
             ALTER TABLE {table_name}
             ADD CONSTRAINT {constraint_name}
-            UNIQUE (collection_id, lexeme_id);
+            UNIQUE (collection, lexeme);
             """
         )
 

@@ -1,5 +1,4 @@
 from piccolo.apps.migrations.auto.migration_manager import MigrationManager
-from piccolo.query.methods.alter import AddColumn
 
 ID = "2024-03-19T13:24:42:743277"
 VERSION = "1.4.2"
@@ -116,6 +115,7 @@ def create_definition_table(manager: MigrationManager):
     manager.add_column(
         **table,
         column_name="lexeme",
+        db_column_name="lexeme",
         column_class_name="ForeignKey",
         params={
             "references": "lexeme",
@@ -126,6 +126,7 @@ def create_definition_table(manager: MigrationManager):
     manager.add_column(
         **table,
         column_name="dictionary",
+        db_column_name="dictionary",
         column_class_name="ForeignKey",
         params={
             "references": "dictionary",
