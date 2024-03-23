@@ -2,7 +2,8 @@ import os
 
 from piccolo.conf.apps import AppConfig, Command, table_finder
 
-from lipotes.collection.command.seed import seed
+from lipotes.collection.command.seed_pleco import seed_pleco
+from lipotes.collection.command.seed_text import seed_text
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
@@ -14,5 +15,8 @@ APP_CONFIG = AppConfig(
         modules=["lipotes.collection.tables"], exclude_imported=True
     ),
     migration_dependencies=[],
-    commands=[Command(seed)],
+    commands=[
+        Command(seed_text, aliases=["seed-text"]),
+        Command(seed_pleco, aliases=["seed-pleco"]),
+    ],
 )
