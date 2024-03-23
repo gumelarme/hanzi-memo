@@ -5,8 +5,7 @@ from tqdm import tqdm
 
 from lipotes.db.connection import get_engine, session_maker
 from lipotes.db.model import Definition, Dictionary, Lexeme
-from resources.dictionary import Entry, parse_dict
-from resources.dictionary.parse import PARSER_FILE_PAIR
+from lipotes.dictionary.parser import PARSER_FILE_PAIR, Entry, parse_dict
 
 from .command import Command
 from .utils import chunkify

@@ -1,7 +1,6 @@
 import re
 
-from . import Parser
-from .base import Definition, Entry
+from .base import Definition, Entry, Parser
 
 
 class CEDICTParser(Parser):
@@ -17,15 +16,6 @@ class CEDICTParser(Parser):
                     continue
                 entries.append(cls.parse_line(line))
             return entries
-
-    # @classmethod
-    # def parse_text(cls, text: str) -> list[Entry]:
-    #     lines = text.split("\n")
-    #     return [cls.parse_line(line) for line in lines[cls.skip :]]
-
-    @classmethod
-    def parse_text(cls, text: str) -> list[Entry]:
-        pass
 
     @classmethod
     def parse_line(cls, text: str) -> Entry:

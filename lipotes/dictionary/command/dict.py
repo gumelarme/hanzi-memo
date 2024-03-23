@@ -1,4 +1,4 @@
-from resources.dictionary.parse import PARSER_FILE_PAIR
+from lipotes.dictionary.parser import PARSER_FILE_PAIR
 
 # TODO: implement command that download dicts
 

@@ -18,11 +18,6 @@ class Entry:
 
 class Parser(ABC):
     @classmethod
-    def parse(cls, filename: str) -> list[Entry]:
-        with open(filename, "r") as f:
-            return cls.parse_text(f.read())
-
-    @classmethod
     @abstractmethod
-    def parse_text(cls, text: str) -> list[Entry]:
+    def parse(cls, filename: str) -> list[Entry]:
         raise NotImplementedError

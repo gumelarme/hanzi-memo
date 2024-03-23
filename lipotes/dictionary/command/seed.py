@@ -3,8 +3,8 @@ import math
 from piccolo.query import Insert
 from tqdm import tqdm
 
+from lipotes.dictionary.parser import Entry, parse_dict
 from lipotes.dictionary.tables import Definition, Dictionary, Lexeme
-from resources.dictionary import Entry, parse_dict
 
 
 def chunkify(lst, n):
