@@ -18,5 +18,9 @@ DB = PostgresEngine(
 )
 
 APP_REGISTRY = AppRegistry(
-    apps=["lipotes.dictionary.piccolo_app", "lipotes.collection.piccolo_app"]
+    apps=[
+        "lipotes.dictionary.piccolo_app",
+        "lipotes.collection.piccolo_app",
+        "lipotes.text.piccolo_app",
+    ]
 )
