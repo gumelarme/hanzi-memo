@@ -9,28 +9,25 @@ from resources.collections.pleco import parse_pleco
 from .action import resolve_resource_dir, seed_collection
 
 
-async def seed_pleco(files: str):
-    files = list(map(str.strip, files.split(",")))
+async def seed_pleco(file: str):
+    """
+    Seed collection tables from pleco backup files
+    :param file:
+        Pleco backup file name, usually a xml file.
+    """
+
     try:
-        for file in files:
-            validate_pleco_file(file)
+        validate_pleco_file(file)
     except Exception as e:
         print(f"Error: {e}")
         print_available_pleco_files()
         return
 
-    shown_file = files[0]
-    if len(files) > 1:
-        shown_file = f"{files[0]}-{files[-1]}"
-
-    desc = f"Seeding pleco {shown_file}"
-    with tqdm(total=len(files), desc=desc) as progress_bar:
-        for file in files:
-            collections = parse_pleco(file)
-            for coll_name, words in collections.items():
-                await seed_collection(
-                    coll_name, list(words), ["zh_sc", "zh_tc", "pinyin"]
-                )
+    collections = parse_pleco(file)
+    desc = f"Seeding pleco {file}"
+    with tqdm(total=len(collections), desc=desc) as progress_bar:
+        for coll_name, words in collections.items():
+            await seed_collection(coll_name, list(words), ["zh_sc", "zh_tc", "pinyin"])
             progress_bar.update(1)
 
 
