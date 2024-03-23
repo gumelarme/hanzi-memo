@@ -1,6 +1,6 @@
 import os
 
-from .base import ZHWord
+from .base import ZHWord, resolve_resource_dir
 
 COLL_FILE_PAIR = {
     "hsk1": ("HSK1", "hsk1.txt"),
@@ -16,7 +16,8 @@ DELIMITER = "#"
 
 def parse_text_collection(source: str) -> tuple[str, list[ZHWord]]:
     name, filename = COLL_FILE_PAIR[source]
-    filename = os.path.join(os.getcwd(), "resources/collections/data/source", filename)
+    resource_dir = resolve_resource_dir()
+    filename = os.path.join(resource_dir, filename)
     with open(filename, "r") as f:
         words = []
         for word_pair in f.read().splitlines():

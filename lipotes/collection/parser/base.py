@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 
 
@@ -17,3 +18,10 @@ class ZHWord:
 
         if not any([self.zh_sc, self.zh_tc]):
             raise Exception("At least one of `zh_sc` or `zh_tc` must be present")
+
+
+def resolve_resource_dir(resource_dir: str = None) -> str:
+    if resource_dir is None:
+        resource_dir = os.path.join(os.getcwd(), "resources/collections/data/source")
+
+    return resource_dir

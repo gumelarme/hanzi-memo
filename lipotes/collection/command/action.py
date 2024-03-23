@@ -41,10 +41,3 @@ async def seed_collection(name: str, words: list[ZHWord], clause: list[str]):
     for lex in coll_lexemes:
         bulk_insert.add(LexemeCollection(collection=coll, lexeme=lex))
     await bulk_insert.run()
-
-
-def resolve_resource_dir(resource_dir: str | None) -> str:
-    if resource_dir is None:
-        resource_dir = os.path.join(os.getcwd(), "resources/collections/data/source")
-
-    return resource_dir

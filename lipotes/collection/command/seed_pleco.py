@@ -4,9 +4,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from lipotes.collection.parser import resolve_resource_dir
 from lipotes.collection.parser.pleco import parse_pleco
 
-from .action import resolve_resource_dir, seed_collection
+from .action import seed_collection
 
 
 async def seed_pleco(file: str):

@@ -2,7 +2,7 @@ import os
 import re
 from xml.etree import ElementTree
 
-from .base import ZHWord
+from .base import ZHWord, resolve_resource_dir
 
 RE_PINYIN_UNIT = re.compile(r"([a-zA-Z]+\d)")
 
@@ -22,7 +22,8 @@ def normalize_pinyin(pinyin: str):
 
 
 def parse_pleco(filename: str) -> dict[str, set[ZHWord]]:
-    filename = os.path.join(os.getcwd(), "resources/collections/data/source", filename)
+    resource_dir = resolve_resource_dir(None)
+    filename = os.path.join(resource_dir, filename)
 
     tree = ElementTree.parse(filename)
     root = tree.getroot()

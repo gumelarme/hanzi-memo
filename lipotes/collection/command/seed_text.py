@@ -2,9 +2,13 @@ import os
 
 from tqdm import tqdm
 
-from lipotes.collection.parser import COLL_FILE_PAIR, parse_text_collection
+from lipotes.collection.parser import (
+    COLL_FILE_PAIR,
+    parse_text_collection,
+    resolve_resource_dir,
+)
 
-from .action import resolve_resource_dir, seed_collection
+from .action import seed_collection
 
 
 async def seed_text(collections: str):
