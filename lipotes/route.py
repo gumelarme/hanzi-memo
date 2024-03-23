@@ -1,5 +1,6 @@
 from litestar import get
 
+from lipotes.collection.controller import CollectionController
 from lipotes.dictionary.controller import DictionaryController
 from lipotes.text.controller import TextController
 
@@ -13,4 +14,5 @@ api = [
     index,
     TextController,
     DictionaryController,
+    CollectionController,
 ]
