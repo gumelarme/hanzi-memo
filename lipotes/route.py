@@ -1,5 +1,6 @@
 from litestar import get
 
+from lipotes.dictionary.controller import DictionaryController
 from lipotes.text.controller import TextController
 
 
@@ -11,4 +12,5 @@ async def index() -> dict[str, any]:
 api = [
     index,
     TextController,
+    DictionaryController,
 ]
