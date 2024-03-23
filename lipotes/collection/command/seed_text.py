@@ -2,7 +2,7 @@ import os
 
 from tqdm import tqdm
 
-from resources.collections import COLL_FILE_PAIR, parse_collection
+from lipotes.collection.parser import COLL_FILE_PAIR, parse_text_collection
 
 from .action import resolve_resource_dir, seed_collection
 
@@ -33,7 +33,7 @@ async def seed_text(collections: str):
     desc = f"Seeding collection text {shown_file}"
     with tqdm(total=len(collections), desc=desc) as progress_bar:
         for coll_name in collections:
-            name, parsed_collection = parse_collection(coll_name)
+            name, parsed_collection = parse_text_collection(coll_name)
             await seed_collection(name, parsed_collection, ["zh_sc", "zh_tc"])
 
             progress_bar.update(1)

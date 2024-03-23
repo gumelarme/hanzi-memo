@@ -4,7 +4,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from resources.collections.pleco import parse_pleco
+from lipotes.collection.parser.pleco import parse_pleco
 
 from .action import resolve_resource_dir, seed_collection
 

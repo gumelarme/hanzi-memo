@@ -2,9 +2,9 @@ import os
 
 from tqdm import tqdm
 
+from lipotes.collection.parser import ZHWord
 from lipotes.collection.tables import Collection, LexemeCollection
 from lipotes.dictionary.tables import Lexeme
-from resources.collections import ZHWord
 
 
 async def seed_collection(name: str, words: list[ZHWord], clause: list[str]):

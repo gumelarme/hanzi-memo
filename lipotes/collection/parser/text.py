@@ -1,5 +1,6 @@
-import os.path
-from dataclasses import dataclass
+import os
+
+from .base import ZHWord
 
 COLL_FILE_PAIR = {
     "hsk1": ("HSK1", "hsk1.txt"),
@@ -10,29 +11,10 @@ COLL_FILE_PAIR = {
     "hsk6": ("HSK6", "hsk6.txt"),
 }
 
-
-@dataclass(frozen=True)
-class ZHWord:
-    zh_sc: str | None
-    zh_tc: str | None
-    pinyin: str | None = None
-
-    def __post_init__(self):
-        # setattr here to avoid frozen=True raising error
-        if self.zh_sc == "":
-            object.__setattr__(self, "zh_sc", None)
-
-        if self.zh_tc == "":
-            object.__setattr__(self, "zh_tc", None)
-
-        if not any([self.zh_sc, self.zh_tc]):
-            raise Exception("At least one of `zh_sc` or `zh_tc` must be present")
-
-
 DELIMITER = "#"
 
 
-def parse_collection(source: str) -> tuple[str, list[ZHWord]]:
+def parse_text_collection(source: str) -> tuple[str, list[ZHWord]]:
     name, filename = COLL_FILE_PAIR[source]
     filename = os.path.join(os.getcwd(), "resources/collections/data/source", filename)
     with open(filename, "r") as f:

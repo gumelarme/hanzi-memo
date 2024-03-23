@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tqdm import tqdm
 
+from lipotes.collection.parser import COLL_FILE_PAIR, ZHWord, parse_text_collection
 from lipotes.db.connection import get_engine, session_maker
 from lipotes.db.model import Collection, Lexeme
-from resources.collections import COLL_FILE_PAIR, ZHWord, parse_collection
 
 from .command import Command
 from .utils import chunkify
@@ -21,7 +21,7 @@ class SeedCollectionCommand(Command):
         session = session_maker(bind=engine)
         async with session.begin():
             for source in args:
-                parsed = parse_collection(source)
+                parsed = parse_text_collection(source)
                 await cls.seed_one_collection(session, parsed)
 
     @classmethod

@@ -4,9 +4,9 @@ from pathlib import Path
 from sqlalchemy import select
 from tqdm import tqdm
 
+from lipotes.collection.parser.pleco import parse_pleco
 from lipotes.db.connection import get_engine, session_maker
 from lipotes.db.model import Collection, Lexeme
-from resources.collections.pleco import parse_pleco
 
 from .command import Command
 

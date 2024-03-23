@@ -2,7 +2,7 @@ import os
 import re
 from xml.etree import ElementTree
 
-from . import ZHWord
+from .base import ZHWord
 
 RE_PINYIN_UNIT = re.compile(r"([a-zA-Z]+\d)")
 
