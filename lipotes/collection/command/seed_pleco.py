@@ -19,7 +19,12 @@ async def seed_pleco(files: str):
         print_available_pleco_files()
         return
 
-    with tqdm(total=len(files), desc="Seeding pleco") as progress_bar:
+    shown_file = files[0]
+    if len(files) > 1:
+        shown_file = f"{files[0]}-{files[-1]}"
+
+    desc = f"Seeding pleco {shown_file}"
+    with tqdm(total=len(files), desc=desc) as progress_bar:
         for file in files:
             collections = parse_pleco(file)
             for coll_name, words in collections.items():

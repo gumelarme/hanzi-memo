@@ -26,10 +26,13 @@ async def seed_text(collections: str):
         print_available_collections()
         return
 
-    with tqdm(total=len(collections)) as progress_bar:
-        for coll_name in collections:
-            progress_bar.set_description(f"Seeding collection {coll_name}")
+    shown_file = collections[0]
+    if len(collections) > 1:
+        shown_file = f"{collections[0]}-{collections[-1]}"
 
+    desc = f"Seeding collection text {shown_file}"
+    with tqdm(total=len(collections), desc=desc) as progress_bar:
+        for coll_name in collections:
             name, parsed_collection = parse_collection(coll_name)
             await seed_collection(name, parsed_collection)
 

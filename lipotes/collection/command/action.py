@@ -1,5 +1,7 @@
 import os
 
+from tqdm import tqdm
+
 from lipotes.collection.tables import Collection, LexemeCollection
 from lipotes.dictionary.tables import Lexeme
 from resources.collections import ZHWord
@@ -9,7 +11,7 @@ async def seed_collection(name: str, words: list[ZHWord]):
     coll_lexemes = []
     missing_lexeme = Lexeme.insert()
 
-    for word in words:
+    for word in tqdm(words, leave=False, desc=f"Seeding collection {name!r}"):
         lexemes = await Lexeme.objects().where(
             Lexeme.zh_sc == word.zh_sc, Lexeme.zh_tc == word.zh_tc
         )
