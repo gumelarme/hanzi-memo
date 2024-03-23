@@ -11,13 +11,8 @@ from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 from sqlalchemy.orm.exc import NoResultFound
 
-from lipotes.controller import index
-from lipotes.controller.collection import CollectionController
-from lipotes.controller.dict import DictionaryController
-from lipotes.controller.lexeme import LexemeController
-from lipotes.controller.pinyin import get_pinyin
-from lipotes.controller.text import TextController
 from lipotes.db.connection import db_connection, provide_transaction
+from lipotes.route import api
 
 logging_config = StructLoggingConfig(
     processors=[
@@ -80,16 +75,6 @@ app = Litestar(
         Exception: json_logger_exception_handler,
     },
     route_handlers=[
-        Router(
-            path="/api",
-            route_handlers=[
-                index,
-                get_pinyin,
-                CollectionController,
-                LexemeController,
-                DictionaryController,
-                TextController,
-            ],
-        )
+        Router(path="/api/v1", route_handlers=api),
     ],
 )
