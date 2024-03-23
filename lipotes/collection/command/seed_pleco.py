@@ -28,7 +28,9 @@ async def seed_pleco(files: str):
         for file in files:
             collections = parse_pleco(file)
             for coll_name, words in collections.items():
-                await seed_collection(coll_name, list(words))
+                await seed_collection(
+                    coll_name, list(words), ["zh_sc", "zh_tc", "pinyin"]
+                )
             progress_bar.update(1)
 
 

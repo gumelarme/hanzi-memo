@@ -34,7 +34,7 @@ async def seed_text(collections: str):
     with tqdm(total=len(collections), desc=desc) as progress_bar:
         for coll_name in collections:
             name, parsed_collection = parse_collection(coll_name)
-            await seed_collection(name, parsed_collection)
+            await seed_collection(name, parsed_collection, ["zh_sc", "zh_tc"])
 
             progress_bar.update(1)
 

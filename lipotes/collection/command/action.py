@@ -7,14 +7,18 @@ from lipotes.dictionary.tables import Lexeme
 from resources.collections import ZHWord
 
 
-async def seed_collection(name: str, words: list[ZHWord]):
+async def seed_collection(name: str, words: list[ZHWord], clause: list[str]):
     coll_lexemes = []
     missing_lexeme = Lexeme.insert()
 
     for word in tqdm(words, leave=False, desc=f"Seeding collection {name!r}"):
-        lexemes = await Lexeme.objects().where(
-            Lexeme.zh_sc == word.zh_sc, Lexeme.zh_tc == word.zh_tc
-        )
+        where = []
+        for column in clause:
+            where.append(getattr(Lexeme, column) == getattr(word, column))
+
+        lexemes = await Lexeme.objects().where(*where)
+        if len(lexemes) > 1:
+            breakpoint()
 
         if not lexemes:
             # NOTE: this will create lexeme that are mentioned in the collections
