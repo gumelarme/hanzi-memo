@@ -2,6 +2,7 @@ from litestar import get
 
 from lipotes.collection.controller import CollectionController
 from lipotes.dictionary.controller import DictionaryController
+from lipotes.dictionary.controller.lexeme import LexemeController
 from lipotes.text.controller import TextController
 
 
@@ -15,4 +16,5 @@ api = [
     TextController,
     DictionaryController,
     CollectionController,
+    LexemeController,
 ]
