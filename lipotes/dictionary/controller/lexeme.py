@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 
 from litestar import Controller, get
-from litestar.contrib.piccolo import PiccoloDTO
 from litestar.dto import DataclassDTO
 from litestar.exceptions import NotFoundException
 
@@ -9,24 +8,23 @@ from lipotes.dictionary.tables import Definition, Lexeme
 
 
 @dataclass
-class LexemeWithDefinition:
+class LexemeOut:
     id: str
     zh_sc: str | None
     zh_tc: str | None
     pinyin: str | None
+
+
+@dataclass
+class LexemeWithDefinition(LexemeOut):
     definitions: list[dict[str, any]] = field(default_factory=list)
-
-
-class LexemeDTO(DataclassDTO[LexemeWithDefinition]):
-    pass
 
 
 # TODO: fetch lexeme example end points
 class LexemeController(Controller):
     path = "/lexemes"
-    return_dto = PiccoloDTO[Lexeme]
 
-    @get("/{lexeme_id:int}", return_dto=LexemeDTO)
+    @get("/{lexeme_id:int}", return_dto=DataclassDTO[LexemeWithDefinition])
     async def get_lexeme_by_id(self, lexeme_id: int) -> LexemeWithDefinition:
         result = await Lexeme.select().where(Lexeme.id == lexeme_id).first()
         if result is None:

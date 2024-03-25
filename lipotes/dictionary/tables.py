@@ -1,3 +1,4 @@
+from async_lru import alru_cache
 from piccolo.columns import ForeignKey, Serial, Varchar
 from piccolo.table import Table
 
@@ -7,6 +8,11 @@ class Lexeme(Table):
     zh_sc = Varchar(null=True)
     zh_tc = Varchar(null=True)
     pinyin = Varchar(null=True)
+
+    @classmethod
+    @alru_cache(maxsize=2**12)
+    async def find(cls, sc: str):
+        return await cls.select().where(Lexeme.zh_sc == sc)
 
 
 class Dictionary(Table):

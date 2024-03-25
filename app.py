@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import structlog
 from litestar import Litestar, MediaType, Request, Response, Router
@@ -12,6 +13,7 @@ from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_E
 from sqlalchemy.orm.exc import NoResultFound
 
 from lipotes.db.connection import db_connection, provide_transaction
+from lipotes.dictionary.tokenizer import init_tokenizer
 from lipotes.route import api
 
 logging_config = StructLoggingConfig(
@@ -63,6 +65,20 @@ rate = os.environ.get("APP_RATE_LIMIT", 1000)
 rate_limit_config = RateLimitConfig(("minute", rate))
 cors = CORSConfig()
 
+timer = {}
+logger = structlog.get_logger()
+
+
+async def before(request: Request) -> None:
+    timer[request.get_session_id()] = time.time()
+
+
+async def after(request: Request):
+    start_time = timer[request.get_session_id()]
+
+    ms_time = (start_time - time.time()) * 1000
+    logger.info("Request done", time=f"{ms_time}ms")
+
 
 app = Litestar(
     logging_config=logging_config,
@@ -71,6 +87,9 @@ app = Litestar(
     dependencies={"tx": provide_transaction},
     middleware=[rate_limit_config.middleware],
     cors_config=cors,
+    on_startup=[init_tokenizer],
+    before_request=before,
+    after_response=after,
     exception_handlers={
         Exception: json_logger_exception_handler,
     },
