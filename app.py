@@ -13,7 +13,7 @@ from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_E
 from sqlalchemy.orm.exc import NoResultFound
 
 from lipotes.db.connection import db_connection, provide_transaction
-from lipotes.dictionary.tokenizer import init_tokenizer
+from lipotes.dictionary.text_processor import init_tokenizer
 from lipotes.route import api
 
 logging_config = StructLoggingConfig(
