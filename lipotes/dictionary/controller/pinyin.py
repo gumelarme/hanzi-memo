@@ -10,7 +10,9 @@ from lipotes.dictionary.controller.lexeme import LexemeOut
 from lipotes.dictionary.tables import Lexeme
 from lipotes.dictionary.text_processor import (
     cut_by_largest_available_lexeme,
-    segment_repeating,
+    find_ascii,
+    find_repeating,
+    segment_by_position,
     segment_repeating_char_by_longest_possible_lexeme,
     tokenizer,
 )
@@ -34,19 +36,31 @@ async def get_pinyin(text: str) -> list[PinyinOut]:
             extra={"text": f"maximum allowed character: {CHAR_LIMIT}"},
         )
 
-    # on long repeating character for example:  哈 x100
-    # jieba will cut this into 3 char x 33 times, this make a lot of unnecessary iteration,
-    # it shows an increase of 200ms response time even with caching
     segments: list[str] = []
-    for segment, is_repeating in segment_repeating(text):
-        if is_repeating:
-            tokens = await segment_repeating_char_by_longest_possible_lexeme(segment)
-        else:
-            tokens = [segment]
-        segments.extend(tokens)
+    for s, is_ascii in segment_by_position(text, find_ascii(text)):
+        if is_ascii:
+            segments.append(s)
+            continue
 
-    for tokenizer_func in [tokenizer.cut, cut_by_largest_available_lexeme, str]:
-        segments = await make_pinyin(segments, tokenizer_func)
+        # on long repeating character for example:  哈 x100
+        # jieba will cut this into 3 char x 33 times, this make a lot of unnecessary iteration,
+        # it shows an increase of 200ms response time even with caching
+        for segment, is_repeating in segment_by_position(s, find_repeating(s)):
+            if is_repeating:
+                tokens = await segment_repeating_char_by_longest_possible_lexeme(
+                    segment
+                )
+            else:
+                tokens = [segment]
+            segments.extend(tokens)
+
+    tokenizer_functions = [
+        tokenizer.cut,
+        cut_by_largest_available_lexeme,
+        split_if_not_ascii,
+    ]
+    for i, func in enumerate(tokenizer_functions):
+        segments = await make_pinyin(segments, func, i + 1 == len(tokenizer_functions))
 
     # Everything should be a dictionary here
     result = []
@@ -60,12 +74,19 @@ async def get_pinyin(text: str) -> list[PinyinOut]:
 async def make_pinyin(
     segments: list[str | PinyinOut],
     tokenizer_: Callable,
+    is_last: bool = False,
 ) -> list[str | PinyinOut]:
     result = []
     segments = [x for x in segments if x]
     for segment in segments:
         if isinstance(segment, PinyinOut):
             result.append(segment)
+            continue
+
+        if segment.isascii():
+            # TODO: also skip chinese punctuation
+            # FIXME: there are ascii entry on database, e.g 996, PU
+            result.append(PinyinOut(token=segment, pinyins=[]))
             continue
 
         if inspect.iscoroutinefunction(tokenizer_):
@@ -78,6 +99,7 @@ async def make_pinyin(
 
             if not lexemes:
                 # leave it for the next tokenizer to process
+                token = token if not is_last else PinyinOut(token=token, pinyins=[])
                 result.append(token)
                 continue
 
@@ -90,3 +112,7 @@ async def make_pinyin(
                 )
             )
     return result
+
+
+def split_if_not_ascii(text: str):
+    return [text] if text.isascii() else text

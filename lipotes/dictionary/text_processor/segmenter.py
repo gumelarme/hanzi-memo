@@ -1,4 +1,5 @@
 import re
+import string
 
 from async_lru import alru_cache
 
@@ -23,10 +24,11 @@ def find_repeating(zh_text: str, max_repeat: int = None) -> list[tuple[int, int]
     return splits
 
 
-def segment_repeating(zh_text: str, max_repeat: int = None) -> list[tuple[str, bool]]:
-    splits = find_repeating(zh_text, max_repeat)
+def segment_by_position(
+    text: str, splits: list[tuple[int, int]]
+) -> list[tuple[str, bool]]:
     if not splits:
-        return [(zh_text, False)]
+        return [(text, False)]
 
     new_splits = splits.copy()
     # make sure we have every part of the string
@@ -35,8 +37,8 @@ def segment_repeating(zh_text: str, max_repeat: int = None) -> list[tuple[str, b
         new_splits.insert(0, (0, head_start))
 
     _, tail_end = new_splits[-1]
-    if tail_end != len(zh_text):
-        new_splits.append((tail_end, len(zh_text)))
+    if tail_end != len(text):
+        new_splits.append((tail_end, len(text)))
 
     results = []
     point: tuple[int, int]
@@ -47,7 +49,7 @@ def segment_repeating(zh_text: str, max_repeat: int = None) -> list[tuple[str, b
         if i + 1 < len(new_splits) and point[1] != new_splits[i + 1][0]:
             results.append((point[1], new_splits[i + 1][0]))
 
-    return [(zh_text[point[0] : point[1]], point in splits) for point in results]
+    return [(text[point[0] : point[1]], point in splits) for point in results]
 
 
 @alru_cache(maxsize=2**7)
@@ -74,3 +76,8 @@ async def segment_repeating_char_by_longest_possible_lexeme(text: str) -> list[s
     char = text[0]
     length = len(text)
     return ([char * step] * (length // step)) + [char * (length % step)]
+
+
+def find_ascii(text: str) -> list[tuple[int, int]]:
+    pattern = r"[A-Za-z0-9\s%s]+" % string.punctuation
+    return [match.span() for match in re.finditer(pattern, text)]

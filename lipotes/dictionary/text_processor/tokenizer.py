@@ -65,6 +65,7 @@ def avg_token_size(tokens: list[Point]):
 
 
 def find_possible_cut(text: str) -> list[list[str]]:
+    # BUG: edge cases 重要着力点, 第十一次
     tokens = list(tokenizer.tokenize(text, mode="search"))
 
     # there is no way to cut it
@@ -88,10 +89,14 @@ def find_possible_cut(text: str) -> list[list[str]]:
 
 
 async def cut_by_largest_available_lexeme(text: str) -> list[str]:
-    tokens_list = find_possible_cut(text)
-    for tokens in tokens_list:
-        is_found = [bool(await Lexeme.find(token)) for token in tokens]
-        if all(is_found):
-            return tokens
-    else:
-        return tokens_list[0]
+    try:
+        tokens_list = find_possible_cut(text)
+        for tokens in tokens_list:
+            is_found = [bool(await Lexeme.find(token)) for token in tokens]
+            if all(is_found):
+                return tokens
+        else:
+            return tokens_list[0]
+    except IndexError:
+        # BUG on find_possible_cut
+        return [text]
