@@ -6,7 +6,7 @@ from lipotes.dictionary.tables import Lexeme
 
 class Collection(Table):
     id = Serial(primary_key=True)
-    name = Varchar()
+    name = Varchar(required=True)
 
 
 class LexemeCollection(Table):
