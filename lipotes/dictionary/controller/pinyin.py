@@ -1,7 +1,7 @@
 import inspect
 import re
 from dataclasses import dataclass, field
-from typing import Awaitable, Callable, Generator
+from typing import Callable
 
 from async_lru import alru_cache
 from litestar import get
@@ -15,7 +15,7 @@ from lipotes.dictionary.tokenizer import tokenizer
 
 @dataclass
 class PinyinOut:
-    segment: str
+    token: str
     pinyins: list[LexemeOut] = field(default_factory=list)
     is_visible: bool = True
 
@@ -28,34 +28,64 @@ async def get_pinyin(text: str) -> list[PinyinOut]:
     if len(text) > CHAR_LIMIT:
         raise ValidationException(
             detail="Character limit exceeded",
-            extra={"zh_query": f"maximum allowed character: {CHAR_LIMIT}"},
+            extra={"text": f"maximum allowed character: {CHAR_LIMIT}"},
         )
 
     # on long repeating character for example:  哈 x100
     # jieba will cut this into 3 char x 33 times, this make a lot of unnecessary iteration,
     # it shows an increase of 200ms response time even with caching
-    segments = []
+    segments: list[str] = []
     for segment, is_repeating in segment_repeating(text):
         if is_repeating:
-            tokenized = await segment_repeating_char_by_longest_possible_lexeme(segment)
+            tokens = await segment_repeating_char_by_longest_possible_lexeme(segment)
         else:
-            tokenized = tokenizer.cut(segment)
-        segments.extend(tokenized)
+            tokens = [segment]
+        segments.extend(tokens)
 
+    for tokenizer_func in [tokenizer.cut, cut_by_largest_available_lexeme, str]:
+        segments = await make_pinyin(segments, tokenizer_func)
+
+    # Everything should be a dictionary here
     result = []
+    lexemes: PinyinOut
+    for lexemes in segments:
+        result.append(lexemes)
+
+    return result
+
+
+async def make_pinyin(
+    segments: list[str | PinyinOut],
+    tokenizer_: Callable,
+) -> list[str | PinyinOut]:
+    result = []
+    segments = [x for x in segments if x]
     for segment in segments:
-        if segment == "":
+        if isinstance(segment, PinyinOut):
+            result.append(segment)
             continue
 
-        lexemes = await Lexeme.find(segment)
-        pinyins = [] if not lexemes else [LexemeOut(**x) for x in lexemes]
+        if inspect.iscoroutinefunction(tokenizer_):
+            tokens = await tokenizer_(segment)
+        else:
+            tokens = tokenizer_(segment)
 
-        result.append(
-            PinyinOut(
-                segment=segment,
-                pinyins=pinyins,
+        for token in tokens:
+            lexemes = await Lexeme.find(token)
+
+            if not lexemes:
+                # leave it for the next tokenizer to process
+                result.append(token)
+                continue
+
+            result.append(
+                PinyinOut(
+                    token=token,
+                    pinyins=[LexemeOut(**x) for x in lexemes],
+                    # FIXME: this is a place holder
+                    is_visible=True,
+                )
             )
-        )
     return result
 
 
@@ -129,3 +159,84 @@ def segment_repeating(zh_text: str, max_repeat: int = None) -> list[tuple[str, b
             results.append((point[1], new_splits[i + 1][0]))
 
     return [(zh_text[point[0] : point[1]], point in splits) for point in results]
+
+
+Point = tuple[int, int]
+
+
+def find_all_substr_combination(
+    positions: list[Point], paths: list[list[Point]]
+) -> list[list[Point]]:
+    """
+    Find all possible combination of substrings
+    When tokenizing a sentences with jieba, sometimes some token (lexeme) are not found in the database,
+    but we still want to return something useful to the user.
+    jieba.tokenize with mode="search" will return much  smaller token that this function will process.
+
+    Example:
+    # >>> list(jieba.tokenize("清华大学", mode="search"))
+        [('清华', 0, 2), ('华大', 1, 3), ('大学', 2, 4), ('清华大学', 0, 4)]
+    the two last integer are the position of the substring
+    Possible combination are:
+    - [(0, 4)]
+    - [(0, 2), (2, 4)] # this one is preferred
+    Point (1, 3) is not included because there is no other substring connecting to it.
+    """
+    if not paths:
+        paths = [[x] for x in positions if x[0] == 0]
+
+    found_new = []
+    new_path = []
+    for p in paths:
+        new = False
+        tail_end = p[-1][1]
+        for pos in positions:
+            if tail_end == pos[0]:
+                new_path.append([*p, pos])
+                new = True
+
+        found_new.append(new)
+        if not new:
+            new_path.append(p)
+
+    if not any(found_new):
+        return paths
+
+    return find_all_substr_combination(positions, new_path)
+
+
+def avg_token_size(tokens: list[Point]):
+    return sum([y - x for x, y in tokens]) / len(tokens)
+
+
+def find_possible_cut(text: str) -> list[list[str]]:
+    tokens = list(tokenizer.tokenize(text, mode="search"))
+
+    # there is no way to cut it
+    if len(tokens) == 1:
+        return [[text]]
+
+    token_positions = [
+        (x, y) for _substr, x, y in tokens if y - x < len(text)
+    ]  # get substr positions
+
+    combinations = find_all_substr_combination(token_positions, [])
+    combinations = [
+        x for x in combinations if x[-1][1] == len(text)
+    ]  # filter out incomplete combination
+
+    result = []
+    for combo in sorted(combinations, key=avg_token_size, reverse=True):
+        combo_str = [text[start:end] for start, end in combo]
+        result.append(combo_str)
+    return result
+
+
+async def cut_by_largest_available_lexeme(text: str) -> list[str]:
+    tokens_list = find_possible_cut(text)
+    for tokens in tokens_list:
+        is_found = [bool(await Lexeme.find(token)) for token in tokens]
+        if all(is_found):
+            return tokens
+    else:
+        return tokens_list[0]
