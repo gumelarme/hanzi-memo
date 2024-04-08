@@ -1,10 +1,12 @@
 import inspect
+import re
 from dataclasses import dataclass, field
 from typing import Callable
 
 from litestar import get
 from litestar.dto import DataclassDTO
 from litestar.exceptions import ValidationException
+from piccolo.columns.combination import WhereRaw
 
 from lipotes.dictionary.controller.lexeme import LexemeOut
 from lipotes.dictionary.tables import Lexeme
@@ -16,6 +18,7 @@ from lipotes.dictionary.text_processor import (
     segment_repeating_char_by_longest_possible_lexeme,
     tokenizer,
 )
+from lipotes.dictionary.text_processor.constants import punctuation
 
 
 @dataclass
@@ -83,9 +86,7 @@ async def make_pinyin(
             result.append(segment)
             continue
 
-        if segment.isascii():
-            # TODO: also skip chinese punctuation
-            # FIXME: there are ascii entry on database, e.g 996, PU
+        if await is_non_token(segment):
             result.append(PinyinOut(token=segment, pinyins=[]))
             continue
 
@@ -116,3 +117,24 @@ async def make_pinyin(
 
 def split_if_not_ascii(text: str):
     return [text] if text.isascii() else text
+
+
+def get_ascii_lexeme() -> dict[str, dict]:
+    lexemes = Lexeme.select().where(WhereRaw("zh_sc ~ '^[A-Za-z0-9]+$'")).run_sync()
+    return {lex["zh_sc"]: lex for lex in lexemes}
+
+
+ASCII_LEXEME = get_ascii_lexeme()
+
+
+async def is_non_token(text: str) -> bool:
+    # skip chinese punctuation
+    pattern = r"[%s]" % punctuation
+    if re.match(pattern, text):
+        return True
+
+    # there are ascii entry on database, e.g. 996, PU
+    if text.isascii() and text not in ASCII_LEXEME:
+        return True
+
+    return False
