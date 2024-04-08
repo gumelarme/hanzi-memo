@@ -29,7 +29,11 @@ def segment_by_position(
 ) -> list[tuple[str, bool]]:
     if not splits:
         return [(text, False)]
+    new_splits = fill_up_missing_points(splits, len(text))
+    return [(text[point[0] : point[1]], point in splits) for point in new_splits]
 
+
+def fill_up_missing_points(splits: list[tuple[int, int]], total: int):
     new_splits = splits.copy()
     # make sure we have every part of the string
     head_start, _ = new_splits[0]
@@ -37,8 +41,8 @@ def segment_by_position(
         new_splits.insert(0, (0, head_start))
 
     _, tail_end = new_splits[-1]
-    if tail_end != len(text):
-        new_splits.append((tail_end, len(text)))
+    if tail_end != total:
+        new_splits.append((tail_end, total))
 
     results = []
     point: tuple[int, int]
@@ -49,7 +53,7 @@ def segment_by_position(
         if i + 1 < len(new_splits) and point[1] != new_splits[i + 1][0]:
             results.append((point[1], new_splits[i + 1][0]))
 
-    return [(text[point[0] : point[1]], point in splits) for point in results]
+    return results
 
 
 @alru_cache(maxsize=2**7)

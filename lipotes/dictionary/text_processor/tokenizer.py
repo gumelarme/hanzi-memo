@@ -2,6 +2,7 @@ import structlog
 from jieba import Tokenizer
 
 from lipotes.dictionary.tables import Lexeme
+from lipotes.dictionary.text_processor.segmenter import fill_up_missing_points
 
 log = structlog.get_logger()
 tokenizer = Tokenizer()
@@ -76,10 +77,9 @@ def find_possible_cut(text: str) -> list[list[str]]:
         (x, y) for _substr, x, y in tokens if y - x < len(text)
     ]  # get substr positions
 
+    # TODO: also add non stray/lone substring before filling up
     combinations = find_all_substr_combination(token_positions, [])
-    combinations = [
-        x for x in combinations if x[-1][1] == len(text)
-    ]  # filter out incomplete combination
+    combinations = [fill_up_missing_points(x, len(text)) for x in combinations]
 
     result = []
     for combo in sorted(combinations, key=avg_token_size, reverse=True):
@@ -89,14 +89,10 @@ def find_possible_cut(text: str) -> list[list[str]]:
 
 
 async def cut_by_largest_available_lexeme(text: str) -> list[str]:
-    try:
-        tokens_list = find_possible_cut(text)
-        for tokens in tokens_list:
-            is_found = [bool(await Lexeme.find(token)) for token in tokens]
-            if all(is_found):
-                return tokens
-        else:
-            return tokens_list[0]
-    except IndexError:
-        # BUG on find_possible_cut
-        return [text]
+    tokens_list = find_possible_cut(text)
+    for tokens in tokens_list:
+        is_found = [bool(await Lexeme.find(token)) for token in tokens]
+        if all(is_found):
+            return tokens
+    else:
+        return tokens_list[0]
