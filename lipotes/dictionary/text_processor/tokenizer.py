@@ -1,10 +1,9 @@
-import structlog
 from jieba import Tokenizer
 
+from config.log import logging_config
 from lipotes.dictionary.tables import Lexeme
 from lipotes.dictionary.text_processor.segmenter import fill_up_incomplete_path
 
-log = structlog.get_logger()
 tokenizer = Tokenizer()
 
 
@@ -14,7 +13,8 @@ def init_tokenizer():
     # TODO: add user collection word to tokenizer
 
     i_am_lipotes = tokenizer.lcut("我是白暨豚")
-    log.info("Initializing jieba tokenizer", cuts=i_am_lipotes)
+    logger = logging_config.configure()()
+    logger.info("Initializing jieba tokenizer", cuts=i_am_lipotes)
 
 
 Point = tuple[int, int]

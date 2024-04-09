@@ -1,33 +1,19 @@
-import logging
 import os
 import time
 
-import structlog
 from litestar import Litestar, MediaType, Request, Response, Router
 from litestar.config.cors import CORSConfig
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
 from litestar.exceptions import HTTPException
-from litestar.logging import StructLoggingConfig
 from litestar.middleware.rate_limit import RateLimitConfig
+from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 from sqlalchemy.orm.exc import NoResultFound
 
+from config.log import logging_config
 from lipotes.db.connection import db_connection, provide_transaction
 from lipotes.dictionary.text_processor import init_tokenizer
 from lipotes.route import api
-
-logging_config = StructLoggingConfig(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=False),
-        structlog.dev.ConsoleRenderer(),
-    ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging.NOTSET),
-    logger_factory=structlog.PrintLoggerFactory(),
-    cache_logger_on_first_use=False,
-)
 
 
 def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
@@ -66,24 +52,25 @@ rate_limit_config = RateLimitConfig(("minute", rate))
 cors = CORSConfig()
 
 timer = {}
-logger = structlog.get_logger()
 
 
 async def before(request: Request) -> None:
-    timer[request.get_session_id()] = time.time()
+    timer[request.get_session_id()] = time.process_time_ns()
 
 
 async def after(request: Request):
     start_time = timer[request.get_session_id()]
 
-    ms_time = (start_time - time.time()) * 1000
-    logger.info("Request done", time=f"{ms_time}ms")
+    ms_time = (time.process_time_ns() - start_time) / 1_000_000
+    request.logger = request.logger.bind(time=f"{ms_time}ms")
 
 
 app = Litestar(
-    logging_config=logging_config,
     lifespan=[db_connection],  # noqa
-    plugins=[SQLAlchemySerializationPlugin()],
+    plugins=[
+        SQLAlchemySerializationPlugin(),
+        StructlogPlugin(config=StructlogConfig(logging_config)),
+    ],
     dependencies={"tx": provide_transaction},
     middleware=[rate_limit_config.middleware],
     cors_config=cors,
