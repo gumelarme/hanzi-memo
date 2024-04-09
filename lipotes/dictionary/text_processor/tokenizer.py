@@ -2,7 +2,7 @@ import structlog
 from jieba import Tokenizer
 
 from lipotes.dictionary.tables import Lexeme
-from lipotes.dictionary.text_processor.segmenter import fill_up_missing_points
+from lipotes.dictionary.text_processor.segmenter import fill_up_incomplete_path
 
 log = structlog.get_logger()
 tokenizer = Tokenizer()
@@ -66,7 +66,6 @@ def avg_token_size(tokens: list[Point]):
 
 
 def find_possible_cut(text: str) -> list[list[str]]:
-    # BUG: edge cases 重要着力点, 第十一次
     tokens = list(tokenizer.tokenize(text, mode="search"))
 
     # there is no way to cut it
@@ -77,9 +76,20 @@ def find_possible_cut(text: str) -> list[list[str]]:
         (x, y) for _substr, x, y in tokens if y - x < len(text)
     ]  # get substr positions
 
-    # TODO: also add non stray/lone substring before filling up
     combinations = find_all_substr_combination(token_positions, [])
-    combinations = [fill_up_missing_points(x, len(text)) for x in combinations]
+
+    used_pos = set()
+    for combo in combinations:
+        for point in combo:
+            used_pos.add(point)
+
+    # add stray/lone substring points before filling up,
+    # maximizing the number of possible combinations
+    # this solves 第/十一/次 case
+    for unused_pos in used_pos.symmetric_difference(token_positions):
+        combinations.append([unused_pos])
+
+    combinations = [fill_up_incomplete_path(x, len(text)) for x in combinations]
 
     result = []
     for combo in sorted(combinations, key=avg_token_size, reverse=True):
