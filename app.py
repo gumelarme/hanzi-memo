@@ -12,8 +12,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from config.log import logging_config
 from lipotes.db.connection import db_connection, provide_transaction
-from lipotes.dictionary.text_processor import init_tokenizer
 from lipotes.route import api
+from lipotes.startup import startup_functions
 
 
 def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
@@ -62,7 +62,7 @@ async def after(request: Request):
     start_time = timer[request.get_session_id()]
 
     ms_time = (time.process_time_ns() - start_time) / 1_000_000
-    request.logger = request.logger.bind(time=f"{ms_time}ms")
+    request.logger.info("Request done", time=f"{ms_time}ms")
 
 
 app = Litestar(
@@ -74,7 +74,7 @@ app = Litestar(
     dependencies={"tx": provide_transaction},
     middleware=[rate_limit_config.middleware],
     cors_config=cors,
-    on_startup=[init_tokenizer],
+    on_startup=startup_functions,
     before_request=before,
     after_response=after,
     exception_handlers={

@@ -1,6 +1,10 @@
 from async_lru import alru_cache
+from asyncache import cached
+from cachetools import LRUCache
 from piccolo.columns import ForeignKey, Serial, Varchar
 from piccolo.table import Table
+
+LEXEME_CACHE = LRUCache(maxsize=2**14)
 
 
 class Lexeme(Table):
@@ -10,7 +14,7 @@ class Lexeme(Table):
     pinyin = Varchar(null=True, required=True)
 
     @classmethod
-    @alru_cache(maxsize=2**12)
+    @cached(LEXEME_CACHE)
     async def find(cls, sc: str):
         return await cls.select().where(Lexeme.zh_sc == sc)
 
