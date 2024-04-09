@@ -1,7 +1,8 @@
 import re
 import string
 
-from async_lru import alru_cache
+from asyncache import cached
+from cachetools import LRUCache
 
 from lipotes.dictionary.tables import Lexeme
 
@@ -56,7 +57,7 @@ def fill_up_incomplete_path(splits: list[tuple[int, int]], total: int):
     return results
 
 
-@alru_cache(maxsize=2**7)
+@cached(LRUCache(maxsize=2**7))
 async def get_available_repeating_lexemes_count(text: str) -> list[int]:
     max_len = min(MAX_REPEATING, len(text))
     trial_words = [text[0] * length for length in range(1, max_len)]

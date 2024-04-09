@@ -1,4 +1,3 @@
-from async_lru import alru_cache
 from asyncache import cached
 from cachetools import LRUCache
 from piccolo.columns import ForeignKey, Serial, Varchar
