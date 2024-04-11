@@ -2,7 +2,7 @@ import structlog
 from cachetools.keys import hashkey
 
 from lipotes.collection.tables import LexemeCollection
-from lipotes.dictionary.tables import LEXEME_CACHE, Lexeme
+from lipotes.dictionary.tables import LEXEME_CACHE_BY_SC, Lexeme
 from lipotes.dictionary.text_processor.tokenizer import init_tokenizer
 
 
@@ -21,11 +21,11 @@ async def precache_lexemes():
         # FIXME: risky, better implement custom lru cache with precaching mechanism
         key = hashkey(Lexeme, lex["zh_sc"])
         try:
-            LEXEME_CACHE[key].append(lex)
+            LEXEME_CACHE_BY_SC[key].append(lex)
         except KeyError:
-            LEXEME_CACHE[key] = [lex]
+            LEXEME_CACHE_BY_SC[key] = [lex]
 
-    logger.info("Precaching done", cache_size=LEXEME_CACHE.currsize)
+    logger.info("Precaching done", cache_size=LEXEME_CACHE_BY_SC.currsize)
 
 
 startup_functions = [

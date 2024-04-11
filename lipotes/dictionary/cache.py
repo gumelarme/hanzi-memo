@@ -33,12 +33,13 @@ class LexemeCache:
             pipe.execute()
 
     def get_lexemes(self, char: str, is_sc=True) -> list[dict]:
-        result = []
-        for member in self.r.smembers(f"{self.zh_prefix(is_sc)}:{char}"):
-            data = self.r.hgetall(f"{self.KEY_LEXEME}:{member}")
-            data["id"] = member
-            result.append(data)
-        return result
+        members = self.r.smembers(f"{self.zh_prefix(is_sc)}:{char}")
+        return [self.get_lexemes_by_id(lex_id) for lex_id in members]
+
+    def get_lexemes_by_id(self, lex_id: int) -> dict[str, str]:
+        data = self.r.hgetall(f"{self.KEY_LEXEME}:{lex_id}")
+        data["id"] = lex_id
+        return data
 
     def is_lexeme_unavailable(self, char: str, is_sc=True) -> bool:
         key = f"{self.KEY_UNAVAILABLE_LEXEME}:{self.zh_prefix(is_sc)}"
