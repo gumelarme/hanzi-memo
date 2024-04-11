@@ -1,5 +1,3 @@
-import os
-
 from tqdm import tqdm
 
 from lipotes.collection.parser import ZHWord

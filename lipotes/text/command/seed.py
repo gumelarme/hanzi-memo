@@ -14,5 +14,5 @@ async def seed_text(file: str):
 
     bulk_insert = Text.insert()
     for title, text in tqdm(parse_text(file), desc="Seeding text"):
-        bulk_insert.add(Text(title=title, text=text))
+        await bulk_insert.add(Text(title=title, text=text))
     await bulk_insert.run()

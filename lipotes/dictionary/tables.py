@@ -1,4 +1,3 @@
-import structlog
 from asyncache import cached
 from cachetools import LRUCache
 from cachetools.keys import methodkey

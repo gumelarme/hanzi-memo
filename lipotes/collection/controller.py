@@ -1,10 +1,8 @@
-from cachetools import LRUCache, cached
 from litestar import Controller, get
 from litestar.contrib.piccolo import PiccoloDTO
 from litestar.exceptions import NotFoundException
 
 from lipotes.collection.tables import Collection, LexemeCollection
-from lipotes.dictionary.cache import LexemeCache
 from lipotes.dictionary.tables import Lexeme
 
 
