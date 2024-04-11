@@ -38,6 +38,9 @@ class LexemeCache:
 
     def get_lexemes_by_id(self, lex_id: int) -> dict[str, str]:
         data = self.r.hgetall(f"{self.KEY_LEXEME}:{lex_id}")
+        if not data:
+            return data
+
         data["id"] = lex_id
         return data
 
