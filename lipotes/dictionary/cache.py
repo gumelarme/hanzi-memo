@@ -22,13 +22,15 @@ class LexemeCache:
             self.r.sadd(sc_key, 0)
             return
 
-        for lex in lexemes:
-            lex_id = lex["id"]
-            self.r.sadd(sc_key, lex_id)
-            self.r.hset(
-                f"{self.KEY_LEXEME}:{lex_id}",
-                mapping={k: v for k, v in lex.items() if k != "id"},
-            )
+        with self.r.pipeline() as pipe:
+            for lex in lexemes:
+                lex_id = lex["id"]
+                pipe.sadd(sc_key, lex_id)
+                pipe.hset(
+                    f"{self.KEY_LEXEME}:{lex_id}",
+                    mapping={k: v for k, v in lex.items() if k != "id"},
+                )
+            pipe.execute()
 
     def get_lexemes(self, char: str, is_sc=True) -> list[dict]:
         result = []
