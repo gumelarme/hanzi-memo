@@ -9,6 +9,7 @@ from lipotes.collection.parser import (
 )
 
 from .action import seed_collection
+from .discover import discover
 
 
 async def seed_text(collections: str):
@@ -53,6 +54,8 @@ def validate_collection_file(collection: str, resource_dir=None) -> None:
         raise Exception(f"File {filename!r} is not exist")
 
 
-def print_available_collections() -> None:
-    # TODO: Print available collections
-    pass
+def print_available_collections(resource_dir=None) -> None:
+    text_files = discover("*.txt", resource_dir)
+    text_files = [f"  - {filename}" for filename in text_files]
+    print("Available text files: ")
+    print("\n".join(text_files))

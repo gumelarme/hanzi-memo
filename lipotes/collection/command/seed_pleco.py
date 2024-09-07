@@ -1,6 +1,4 @@
-import glob
 import os
-from pathlib import Path
 
 from tqdm import tqdm
 
@@ -8,6 +6,7 @@ from lipotes.collection.parser import resolve_resource_dir
 from lipotes.collection.parser.pleco import parse_pleco
 
 from .action import seed_collection
+from .discover import discover
 
 
 async def seed_pleco(file: str):
@@ -40,8 +39,7 @@ def validate_pleco_file(file: str, resource_dir=None) -> None:
 
 
 def print_available_pleco_files(resource_dir=None) -> None:
-    resource_dir = resolve_resource_dir(resource_dir)
-    pleco_files = glob.glob(os.path.join(resource_dir, "*.xml"))
-    pleco_files = [f"  - {Path(x).name}" for x in pleco_files]
+    pleco_files = discover("*.xml", resource_dir)
+    pleco_files = [f"  - {filename}" for filename in pleco_files]
     print("Available pleco files: ")
     print("\n".join(pleco_files))
