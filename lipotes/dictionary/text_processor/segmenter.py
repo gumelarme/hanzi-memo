@@ -34,7 +34,10 @@ def segment_by_position(
     return [(text[point[0] : point[1]], point in splits) for point in new_splits]
 
 
-def fill_up_incomplete_path(splits: list[tuple[int, int]], total: int):
+def fill_up_incomplete_path(
+    splits: list[tuple[int, int]],
+    total: int,
+) -> list[tuple[int, int]]:
     new_splits = splits.copy()
     # make sure we have every part of the string
     head_start, _ = new_splits[0]

@@ -12,6 +12,7 @@ certifi==2023.11.17
 cfgv==3.4.0
 click==8.1.7
 colorama==0.4.6
+coverage==7.6.1
 decorator==5.1.1
 distlib==0.3.7
 dnspython==2.4.2
@@ -32,6 +33,7 @@ httpx==0.25.1
 identify==2.5.32
 idna==3.4
 inflection==0.5.1
+iniconfig==2.0.0
 ipython==8.22.2
 jedi==0.19.1
 jieba==0.42.1
@@ -53,6 +55,7 @@ pathspec==0.11.2
 pexpect==4.9.0
 piccolo==1.4.2
 platformdirs==3.11.0
+pluggy==1.5.0
 polyfactory==2.12.0
 pre-commit==3.3.3
 prompt-toolkit==3.0.43
@@ -64,6 +67,7 @@ pydantic-extra-types==2.1.0
 pydantic-settings==2.1.0
 pydantic_core==2.14.3
 Pygments==2.16.1
+pytest==8.3.2
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 PyYAML==6.0.1
