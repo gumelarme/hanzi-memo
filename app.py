@@ -4,7 +4,7 @@ import time
 from litestar import Litestar, MediaType, Request, Response, Router
 from litestar.config.cors import CORSConfig
 from litestar.contrib.sqlalchemy.plugins import SQLAlchemySerializationPlugin
-from litestar.exceptions import HTTPException
+from litestar.exceptions import ClientException, HTTPException
 from litestar.middleware.rate_limit import RateLimitConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
@@ -21,15 +21,13 @@ def json_logger_exception_handler(request: Request, exc: Exception) -> Response:
     status_code = getattr(exc, "status_code", HTTP_500_INTERNAL_SERVER_ERROR)
     detail = getattr(exc, "detail", "Internal Server Error")
 
-    if isinstance(exc, HTTPException):
-        request.logger.exception(str(exc))
-    else:
-        if isinstance(exc, NoResultFound):
-            status_code = HTTP_404_NOT_FOUND
-            detail = "resource not found"
-            request.logger.error(str(exc))
-        else:
-            request.logger.exception(exc)
+    if not isinstance(exc, ClientException):
+        request.logger.exception(exc)
+
+    if isinstance(exc, NoResultFound):
+        status_code = HTTP_404_NOT_FOUND
+        detail = "resource not found"
+        request.logger.error(str(exc))
 
     res = Response(
         media_type=MediaType.JSON,
