@@ -1,4 +1,5 @@
 advanced_alchemy==0.5.5
+aiosqlite==0.20.0
 alembic==1.12.1
 annotated-types==0.6.0
 anyio==4.0.0
@@ -68,6 +69,7 @@ pydantic-settings==2.1.0
 pydantic_core==2.14.3
 Pygments==2.16.1
 pytest==8.3.2
+pytest-asyncio==0.24.0
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 PyYAML==6.0.1

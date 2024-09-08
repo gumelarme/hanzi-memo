@@ -63,7 +63,7 @@ def fill_up_incomplete_path(
 @cached(LRUCache(maxsize=2**7))
 async def get_available_repeating_lexemes_count(text: str) -> list[int]:
     max_len = min(MAX_REPEATING, len(text))
-    trial_words = [text[0] * length for length in range(1, max_len)]
+    trial_words = [text[0] * length for length in range(1, max_len + 1)]
     possible_word = await (
         Lexeme.select(Lexeme.zh_sc)
         .where(Lexeme.zh_sc.is_in(trial_words))
@@ -83,7 +83,15 @@ async def segment_repeating_char_by_longest_possible_lexeme(text: str) -> list[s
     step = max(possible_words_length)
     char = text[0]
     length = len(text)
-    return ([char * step] * (length // step)) + [char * (length % step)]
+    segments = (
+        # repeat char of length `step`, repeated `quotient` times
+        ([char * step] * (length // step))
+        # add the remainder
+        + [char * (length % step)]
+    )
+
+    # remainder could have been 0 and return empty string
+    return [x for x in segments if x]
 
 
 def find_ascii(text: str) -> list[tuple[int, int]]:
