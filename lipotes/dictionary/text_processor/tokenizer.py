@@ -24,19 +24,19 @@ def find_all_substr_combination(
     positions: list[Point], paths: list[list[Point]]
 ) -> list[list[Point]]:
     """
-    | None   Find all possible combination of substrings
-       When tokenizing a sentences with jieba, sometimes some token (lexeme) are not found in the database,
-       but we still want to return something useful to the user.
-       jieba.tokenize with mode="search" will return much  smaller token that this function will process.
+    Find all possible combination of substrings
+    When tokenizing a sentences with jieba, sometimes some token (lexeme) are not found in the database,
+    but we still want to return something useful to the user.
+    jieba.tokenize with mode="search" will return much  smaller token that this function will process.
 
-       Example:
-       # >>> list(jieba.tokenize("清华大学", mode="search"))
-           [('清华', 0, 2), ('华大', 1, 3), ('大学', 2, 4), ('清华大学', 0, 4)]
-       the two last integer are the position of the substring
-       Possible combination are:
-       - [(0, 4)]
-       - [(0, 2), (2, 4)] # this one is preferred
-       Point (1, 3) is not included because there is no other substring connecting to it.
+    Example:
+    # >>> list(jieba.tokenize("清华大学", mode="search"))
+        [('清华', 0, 2), ('华大', 1, 3), ('大学', 2, 4), ('清华大学', 0, 4)]
+    the two last integer are the position of the substring
+    Possible combination are:
+    - [(0, 4)]
+    - [(0, 2), (2, 4)] # this one is preferred
+    Point (1, 3) is not included because there is no other substring connecting to it.
     """
     if not paths:
         paths = [[x] for x in positions if x[0] == 0]
@@ -61,11 +61,12 @@ def find_all_substr_combination(
     return find_all_substr_combination(positions, new_path)
 
 
-def avg_token_size(tokens: list[Point]):
+def avg_token_size(tokens: list[Point]) -> float:
     return sum([y - x for x, y in tokens]) / len(tokens)
 
 
 def find_possible_cut(text: str) -> list[list[str]]:
+    # TODO: need more deterministic testing
     tokens = list(tokenizer.tokenize(text, mode="search"))
 
     # there is no way to cut it
@@ -73,7 +74,10 @@ def find_possible_cut(text: str) -> list[list[str]]:
         return [[text]]
 
     token_positions = [
-        (x, y) for _substr, x, y in tokens if y - x < len(text)
+        # NOTE: I forgot why did I not allow full str, and only allow substr
+        (x, y)
+        for _substr, x, y in tokens
+        if y - x < len(text)
     ]  # get substr positions
 
     combinations = find_all_substr_combination(token_positions, [])

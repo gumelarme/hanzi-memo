@@ -9,6 +9,12 @@ from lipotes.dictionary.text_processor.segmenter import (
     get_available_repeating_lexemes_count,
     segment_repeating_char_by_longest_possible_lexeme,
 )
+from lipotes.dictionary.text_processor.tokenizer import (
+    avg_token_size,
+    cut_by_largest_available_lexeme,
+    find_all_substr_combination,
+    find_possible_cut,
+)
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -139,3 +145,75 @@ async def test_segment_repeating_char_by_longest_possible_lexeme(setup_db):
         Lexeme(zh_sc="哈" * 2, zh_tc="哈" * 2, pinyin="ha1" * 2),
     ).run_sync()
     assert await segment_repeating_char_by_longest_possible_lexeme("哈哈哈") == ["哈哈", "哈"]
+
+
+def test_avg_token_size():
+    assert avg_token_size([(2, 10)]) == 8
+    assert avg_token_size([(1, 2), (3, 4)]) == 1
+    assert avg_token_size([(1, 5), (6, 17), (17, 20)]) == 6
+    assert avg_token_size([(1, 5), (6, 17), (17, 18), (18, 20)]) == 4.5
+
+
+def test_find_all_substr_combination():
+    assert find_all_substr_combination(
+        [
+            (0, 1),
+            (1, 4),
+        ],
+        [],
+    ) == [[(0, 1), (1, 4)]]
+
+    assert find_all_substr_combination(
+        [
+            (0, 1),
+            (3, 4),
+            (1, 4),
+        ],
+        [],
+    ) == [[(0, 1), (1, 4)]], "Dangling substr should be ignored"
+
+    assert find_all_substr_combination(
+        [
+            (0, 1),
+            (1, 2),
+            (2, 4),
+            (1, 4),
+        ],
+        [],
+    ) == [
+        [(0, 1), (1, 2), (2, 4)],
+        [(0, 1), (1, 4)],
+    ], "Multiple combinations of path didnt match"
+
+    assert find_all_substr_combination(
+        [
+            (0, 2),
+            (2, 4),
+            (0, 4),
+        ],
+        [],
+    ) == [
+        [(0, 2), (2, 4)],
+        [(0, 4)],
+    ], "Multiple combinations of path, where one is the whole string"
+
+
+@pytest.mark.parametrize(
+    "text,expect",
+    [
+        ("你好", [["你好"]]),
+        ("你好我是", [["你好", "我", "是"]]),
+        ("清华大学", [["清华", "大学"], ["清", "华大", "学"]]),
+        (
+            "第十一次",
+            [
+                ["第十", "一次"],
+                ["第十一", "次"],
+                ["第", "十一次"],
+                ["第", "十一", "次"],
+            ],
+        ),
+    ],
+)
+def test_find_possible_cut(text, expect):
+    assert all(combo in expect for combo in find_possible_cut(text))
