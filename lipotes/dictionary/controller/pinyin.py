@@ -39,6 +39,7 @@ async def get_pinyin(text: str) -> list[PinyinOut]:
             extra={"text": f"maximum allowed character: {CHAR_LIMIT}"},
         )
 
+    breakpoint()
     segments: list[str] = []
     for s, is_ascii in segment_by_position(text, find_ascii(text)):
         if is_ascii:
@@ -135,7 +136,8 @@ def get_ascii_lexeme(discard_cache=False) -> dict[str, dict]:
 
 async def is_non_token(text: str) -> bool:
     # skip chinese punctuation
-    pattern = r"[%s]" % punctuation
+    # TODO: test this
+    pattern = r"^[%s]+$" % punctuation
     if re.match(pattern, text):
         return True
 
