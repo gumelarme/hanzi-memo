@@ -1,6 +1,7 @@
 import piccolo.table
 import pytest
 
+from lipotes.dictionary.controller.pinyin import split_if_not_ascii
 from lipotes.dictionary.tables import Lexeme
 from lipotes.dictionary.text_processor import find_repeating, segment_by_position
 from lipotes.dictionary.text_processor.segmenter import (
@@ -246,3 +247,8 @@ async def test_cut_by_largest_available_lexeme(setup_db, lexemes, query, expect)
     Lexeme.insert(*lexemes).run_sync()
     clear_cache(Lexeme.find)
     assert (await cut_by_largest_available_lexeme(query)) == expect
+
+
+def test_split_if_not_ascii():
+    assert split_if_not_ascii("Hello") == ["Hello"]
+    assert split_if_not_ascii("你好") == ["你", "好"]

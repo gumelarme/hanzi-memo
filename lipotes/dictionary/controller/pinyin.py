@@ -115,16 +115,22 @@ async def make_pinyin(
     return result
 
 
-def split_if_not_ascii(text: str):
-    return [text] if text.isascii() else text
+def split_if_not_ascii(text: str) -> list:
+    return [text] if text.isascii() else list(text)
 
 
-def get_ascii_lexeme() -> dict[str, dict]:
-    lexemes = Lexeme.select().where(WhereRaw("zh_sc ~ '^[A-Za-z0-9]+$'")).run_sync()
-    return {lex["zh_sc"]: lex for lex in lexemes}
+ASCII_LEXEME = None
 
 
-ASCII_LEXEME = get_ascii_lexeme()
+def get_ascii_lexeme(discard_cache=False) -> dict[str, dict]:
+    # this is to avoid the regex operator `~` being called by sqlite
+    global ASCII_LEXEME
+
+    if ASCII_LEXEME is None or discard_cache:
+        lexemes = Lexeme.select().where(WhereRaw("zh_sc ~ '^[A-Za-z0-9]+$'")).run_sync()
+        ASCII_LEXEME = {lex["zh_sc"]: lex for lex in lexemes}
+
+    return ASCII_LEXEME
 
 
 async def is_non_token(text: str) -> bool:
@@ -134,7 +140,7 @@ async def is_non_token(text: str) -> bool:
         return True
 
     # there are ascii entry on database, e.g. 996, PU
-    if text.isascii() and text not in ASCII_LEXEME:
+    if text.isascii() and text not in get_ascii_lexeme():
         return True
 
     return False
