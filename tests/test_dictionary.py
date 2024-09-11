@@ -217,3 +217,32 @@ def test_find_all_substr_combination():
 )
 def test_find_possible_cut(text, expect):
     assert all(combo in expect for combo in find_possible_cut(text))
+
+
+# TODO: More test case
+@pytest.mark.parametrize(
+    "lexemes,query,expect",
+    [
+        (
+            [
+                Lexeme(zh_sc="第", zh_tc="第", pinyin="di4"),
+                Lexeme(zh_sc="十一", zh_tc="十一", pinyin="shi2yi1"),
+                Lexeme(zh_sc="次", zh_tc="次", pinyin="ci4"),
+            ],
+            "第十一次",
+            ["第", "十一", "次"],
+        ),
+        (
+            [
+                Lexeme(zh_sc="无", zh_tc="无", pinyin="wu2"),
+            ],
+            "第十一次",
+            ["第十", "一次"],
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_cut_by_largest_available_lexeme(setup_db, lexemes, query, expect):
+    Lexeme.insert(*lexemes).run_sync()
+    clear_cache(Lexeme.find)
+    assert (await cut_by_largest_available_lexeme(query)) == expect

@@ -4,7 +4,7 @@ from cachetools.keys import methodkey
 from piccolo.columns import ForeignKey, Serial, Varchar
 from piccolo.table import Table
 
-from lipotes.redis import pool
+from lipotes.redis import get_pool
 
 from .cache import LexemeCache
 
@@ -31,7 +31,7 @@ class Lexeme(Table):
     @classmethod
     @cached(LEXEME_CACHE_BY_SC, key=methodkey)
     async def find(cls, sc: str) -> list[dict]:
-        cache = LexemeCache(pool)
+        cache = LexemeCache(get_pool())
         is_found, lexeme = get_redis_lexeme_by_sc(cache, sc)
         if is_found:
             return lexeme
@@ -51,7 +51,7 @@ class Lexeme(Table):
 
     @classmethod
     async def find_multiple_by_id(cls, ids: list[int]) -> list[dict]:
-        cache = LexemeCache(pool)
+        cache = LexemeCache(get_pool())
 
         @cached(LEXEME_CACHE_BY_ID)
         def find_cached_by_id(lex_id: int) -> dict:
