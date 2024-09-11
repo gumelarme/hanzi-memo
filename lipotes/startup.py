@@ -15,6 +15,10 @@ async def precache_lexemes():
         LexemeCollection.select(LexemeCollection.lexeme).output(as_list=True).run_sync()
     )
 
+    if not lex_ids:
+        logger.info("Caching aborted, collection's lexeme is empty ")
+        return
+
     lexemes = Lexeme.select().where(Lexeme.id.is_in(lex_ids)).run_sync()
 
     for lex in lexemes:
